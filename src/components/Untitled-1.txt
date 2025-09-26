@@ -1,0 +1,49 @@
+{
+  "name": "retromail",
+  "version": "0.1.0",
+  "description": "RétroMail - Client email pour Association RétroBus Essonne",
+  "author": "Association RétroBus Essonne",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder -w"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.1",
+    "imapflow": "^1.0.136",
+    "keytar": "^7.10.0",
+    "mailparser": "^3.9.0",
+    "nodemailer": "^6.9.11",
+    "sanitize-html": "^2.12.1"
+  },
+  "devDependencies": {
+    "electron": "^29.4.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "fr.associationrbe.retromail",
+    "productName": "RétroMail",
+    "files": [
+      "**/*",
+      "!**/*.map",
+      "!**/*.ts",
+      "!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/dist_electron"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "artifactName": "RetroMail-Setup-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
