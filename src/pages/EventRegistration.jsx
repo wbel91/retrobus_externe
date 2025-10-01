@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
   Box,
@@ -16,6 +16,7 @@ import {
 import { FiArrowLeft } from "react-icons/fi";
 
 export default function EventRegistration() {
+  const { eventId } = useParams();
   const [searchParams] = useSearchParams();
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [helloAssoData, setHelloAssoData] = useState(null);
@@ -24,7 +25,7 @@ export default function EventRegistration() {
 
   // Récupération des paramètres de l'URL
   const eventData = {
-    id: searchParams.get('event'),
+    id: eventId,
     title: searchParams.get('title'),
     date: searchParams.get('date'),
     time: searchParams.get('time'),
@@ -103,6 +104,8 @@ export default function EventRegistration() {
     setQrCodeUrl(qrUrl);
     setPaymentSuccess(true);
   };
+
+  console.log("eventData", eventData);
 
   if (!eventData.id || !eventData.title) {
     return (

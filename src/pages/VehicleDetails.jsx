@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Box,
@@ -19,72 +19,52 @@ import {
   ModalBody,
   useDisclosure,
   Flex,
+  Spinner,
+  Center,
 } from "@chakra-ui/react";
 import { FiChevronLeft, FiChevronRight, FiArrowLeft } from "react-icons/fi";
 
-// Import des images
-import back920 from "../assets/photos/back920.jpg";
-import pres920 from "../assets/photos/920_pres.jpg";
-import side920 from "../assets/photos/920_side.jpg";
-import backImg920 from "../assets/photos/920_back.jpg";
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
-const vehicles = [
-  {
-    id: "920",
-    title: "Mercedes‑Benz Citaro",
-    subtitle: "Citaro 1 | € II | ❄️ | ♿",
-    make: "Mercedes Benz",
-    model: "Citaro",
-    year: "2001",
-    registration: "FG-920-RE",
-    miseEnService: "juillet 2001",
-    longueur: "11,95 m",
-    places: "96 places (32 assises + 64 debout + 1 UFR)",
-    moteur: "Mercedes-Benz OM906hLA - 279 ch",
-    puissance: "279 ch",
-    transmission: "ZF5HP-502C",
-    carburant: "Diesel",
-    description:
-      "Ce véhicule est un exemple emblématique de la gamme Citaro de première génération. Mis en service commercial en juillet 2001, il représente l'évolution technologique des transports urbains du début des années 2000. Équipé d'une climatisation complète et accessible aux personnes à mobilité réduite.",
-    history:
-      "Le Mercedes-Benz Citaro est un autobus urbain produit par Daimler AG depuis 1997. Ce modèle a révolutionné les transports publics européens avec son design moderne et ses innovations techniques. Notre exemplaire FG-920-RE a été commandé par Cars Bridet à Wissous pour le réseau du Palladin et mis en service en juillet 2001. Au cours de sa carrière, il a porté successivement les numéros 592, 720, X, puis 920. Il a assuré la desserte Le Palladin jusqu'en août 2014. Après plusieurs années de service fidèle, il est passé brièvement par Brétigny en 2018, puis a rejoint Transdev STRAV à Limeil-Brévannes, avant d'être exploité par Cars Sœur. En mai 2025, ce véhicule historique a trouvé sa place au sein de la collection de l'association RétroBus Essonne, où il témoigne de l'évolution du transport public francilien au début du XXIe siècle.",
-    caracteristiques: [
-      { label: "Numéros de flotte", value: "592 / 720 / X / 920" },
-      { label: "Constructeur", value: "Mercedes-Benz" },
-      { label: "Modèle", value: "Citaro ♿" },
-      { label: "Immatriculation", value: "FG-920-RE" },
-      { label: "Mise en circulation", value: "juillet 2001" },
-      { label: "Longueur", value: "11,95 m" },
-      { label: "Places assises", value: "32" },
-      { label: "Places debout", value: "64" },
-      { label: "UFR", value: "1" },
-      { label: "Statut", value: "Préservé" },
-      { label: "Préservé par", value: "Association RétroBus Essonne" },
-      { label: "Énergie", value: "Diesel" },
-      { label: "Norme Euro", value: "Euro II" },
-      { label: "Moteur", value: "Mercedes-Benz OM906hLA - 279 ch" },
-      { label: "Boîte de vitesses", value: "Automatique ZF5HP-502C" },
-      { label: "Nombre de portes", value: "2" },
-      { label: "Livrée", value: "Grise" },
-      { label: "Girouette", value: "Duhamel LED Oranges + Pastilles Vertes" },
-      { label: "Climatisation", value: "Complète" },
-    ],
-    gallery: [
-      back920,
-      pres920,
-      side920,
-      backImg920,
-    ],
-  },
-];
-
+// __HERO_VERSION_ACTIVE__ - Version HERO plein écran avec overlay et background
 export default function VehicleDetails() {
+  console.log("__HERO_VERSION_ACTIVE__ - Version HERO chargée");
+  
   const { id } = useParams();
-  const vehicle = vehicles.find((v) => v.id === id);
-  const [selectedImage, setSelectedImage] = useState(1); // Commence à la 2e image (920_pres.jpg)
+  const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(0);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  if (!vehicle) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    let abort = false;
+    setLoading(true);
+    fetch(`${API_BASE}/public/vehicles/${id}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Not found');
+        return r.json();
+      })
+      .then(data => {
+        if (abort) return;
+        setVehicle(data);
+      })
+      .catch(e => {
+        if (!abort) setError(e.message);
+      })
+      .finally(() => !abort && setLoading(false));
+    return () => { abort = true; };
+  }, [id]);
+
+  if (loading) {
+    return <Center h="60vh"><Spinner size="xl" color="blue.400" /></Center>;
+  }
+
+  if (error || !vehicle) {
     return (
       <Box
         position="relative"
@@ -92,7 +72,7 @@ export default function VehicleDetails() {
         height="calc(100vh - var(--header-h) - var(--nav-h))"
         marginLeft="calc(-50vw + 50%)"
         marginRight="calc(-50vw + 50%)"
-        backgroundImage="url('/assets/photos/back920.jpg')"
+        backgroundImage="url('/assets/photos/920_back.jpg')"
         backgroundSize="cover"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
@@ -114,16 +94,31 @@ export default function VehicleDetails() {
     );
   }
 
+  // Normaliser les données du véhicule
+  const gallery = Array.isArray(vehicle.gallery) && vehicle.gallery.length > 0
+    ? vehicle.gallery
+    : ['/assets/photos/920_back.jpg'];
+
+  // Images de la galerie (sans la première qui sert de fond)
+  const galleryImages = gallery.slice(1);
+  const fullTitle = vehicle.marque ? `${vehicle.marque} ${vehicle.modele}` : vehicle.modele;
+  const miseEnCirc = vehicle.miseEnCirculation
+    ? new Date(vehicle.miseEnCirculation).getFullYear()
+    : null;
+
+  // Déterminer l'image de fond (backgroundImage ou première de la galerie)
+  const backgroundImage = vehicle.backgroundImage || gallery[0];
+  const backgroundPosition = vehicle.backgroundPosition || 'center';
+
   const nextImage = () => {
-    setSelectedImage((prev) => (prev + 1) % (vehicle.gallery.length - 1));
+    if (galleryImages.length === 0) return;
+    setSelectedImage(i => (i + 1) % galleryImages.length);
   };
 
   const prevImage = () => {
-    setSelectedImage((prev) => (prev - 1 + (vehicle.gallery.length - 1)) % (vehicle.gallery.length - 1));
+    if (galleryImages.length === 0) return;
+    setSelectedImage(i => (i - 1 + galleryImages.length) % galleryImages.length);
   };
-
-  // Images de la galerie (sans la première qui sert de fond)
-  const galleryImages = vehicle.gallery.slice(1);
 
   return (
     <Box
@@ -132,9 +127,9 @@ export default function VehicleDetails() {
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"
       marginLeft="calc(-50vw + 50%)"
       marginRight="calc(-50vw + 50%)"
-      backgroundImage={`url('${vehicle.gallery[0]}')`}
+      backgroundImage={`url('${backgroundImage}')`}
       backgroundSize="cover"
-      backgroundPosition="center"
+      backgroundPosition={backgroundPosition}
       backgroundRepeat="no-repeat"
       overflow="hidden"
     >
@@ -167,19 +162,30 @@ export default function VehicleDetails() {
           {/* En-tête directement sur l'image de fond */}
           <VStack align="start" spacing={4} mb={6}>
             <HStack>
-              <Badge colorScheme="blue" fontSize="md" px={3} py={1} bg="blue.500" color="white">
-                {vehicle.year}
-              </Badge>
-              <Badge colorScheme="green" fontSize="md" px={3} py={1} bg="green.500" color="white">
-                {vehicle.registration}
-              </Badge>
+              {miseEnCirc && (
+                <Badge colorScheme="blue" fontSize="md" px={3} py={1} bg="blue.500" color="white">
+                  {miseEnCirc}
+                </Badge>
+              )}
+              {vehicle.immat && (
+                <Badge colorScheme="green" fontSize="md" px={3} py={1} bg="green.500" color="white">
+                  {vehicle.immat}
+                </Badge>
+              )}
+              {vehicle.etat && (
+                <Badge colorScheme="orange" fontSize="md" px={3} py={1} bg="orange.500" color="white">
+                  {vehicle.etat}
+                </Badge>
+              )}
             </HStack>
             <Heading as="h1" size="2xl" color="white" textShadow="2px 2px 4px rgba(0,0,0,0.8)">
-              {vehicle.title}
+              {fullTitle}
             </Heading>
-            <Text fontSize="xl" color="white" fontWeight="medium" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
-              {vehicle.subtitle}
-            </Text>
+            {vehicle.subtitle && (
+              <Text fontSize="xl" color="white" fontWeight="medium" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
+                {vehicle.subtitle}
+              </Text>
+            )}
           </VStack>
 
           <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
@@ -190,47 +196,55 @@ export default function VehicleDetails() {
               </Heading>
               
               {/* Image principale réduite */}
-              <Box position="relative" mb={3}>
-                <Image
-                  src={galleryImages[selectedImage]}
-                  alt={`${vehicle.title} - Photo ${selectedImage + 1}`}
-                  borderRadius="md"
-                  width="100%"
-                  height="200px"
-                  objectFit="cover"
-                  cursor="pointer"
-                  onClick={onOpen}
-                  transition="transform 0.2s"
-                  _hover={{ transform: "scale(1.02)" }}
-                  border="2px solid white"
-                />
-                
-                {/* Navigation des images */}
-                <IconButton
-                  position="absolute"
-                  left={2}
-                  top="50%"
-                  transform="translateY(-50%)"
-                  icon={<FiChevronLeft />}
-                  onClick={prevImage}
-                  bg="blackAlpha.600"
-                  color="white"
-                  _hover={{ bg: "blackAlpha.800" }}
-                  size="sm"
-                />
-                <IconButton
-                  position="absolute"
-                  right={2}
-                  top="50%"
-                  transform="translateY(-50%)"
-                  icon={<FiChevronRight />}
-                  onClick={nextImage}
-                  bg="blackAlpha.600"
-                  color="white"
-                  _hover={{ bg: "blackAlpha.800" }}
-                  size="sm"
-                />
-              </Box>
+              {galleryImages.length > 0 && (
+                <Box position="relative" mb={3}>
+                  <Image
+                    src={galleryImages[selectedImage]}
+                    alt={`${fullTitle} - Photo ${selectedImage + 1}`}
+                    borderRadius="md"
+                    width="100%"
+                    height="200px"
+                    objectFit="cover"
+                    cursor="pointer"
+                    onClick={onOpen}
+                    transition="transform 0.2s"
+                    _hover={{ transform: "scale(1.02)" }}
+                    border="2px solid white"
+                  />
+                  
+                  {/* Navigation des images */}
+                  {galleryImages.length > 1 && (
+                    <>
+                      <IconButton
+                        position="absolute"
+                        left={2}
+                        top="50%"
+                        transform="translateY(-50%)"
+                        icon={<FiChevronLeft />}
+                        onClick={prevImage}
+                        bg="blackAlpha.600"
+                        color="white"
+                        _hover={{ bg: "blackAlpha.800" }}
+                        size="sm"
+                        aria-label="Image précédente"
+                      />
+                      <IconButton
+                        position="absolute"
+                        right={2}
+                        top="50%"
+                        transform="translateY(-50%)"
+                        icon={<FiChevronRight />}
+                        onClick={nextImage}
+                        bg="blackAlpha.600"
+                        color="white"
+                        _hover={{ bg: "blackAlpha.800" }}
+                        size="sm"
+                        aria-label="Image suivante"
+                      />
+                    </>
+                  )}
+                </Box>
+              )}
 
               {/* Miniatures compactes */}
               <SimpleGrid columns={3} spacing={1}>
@@ -259,7 +273,7 @@ export default function VehicleDetails() {
                 Caractéristiques techniques
               </Heading>
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
-                {vehicle.caracteristiques.map((carac, index) => (
+                {Array.isArray(vehicle.caracteristiques) && vehicle.caracteristiques.map((carac, index) => (
                   <Flex key={index} justify="space-between" py={2} bg="blackAlpha.300" px={4} borderRadius="md">
                     <Text fontWeight="medium" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)" fontSize="sm">
                       {carac.label}
@@ -275,27 +289,31 @@ export default function VehicleDetails() {
 
           {/* Description et histoire en dessous */}
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mt={8}>
-            <Box>
-              <Heading as="h2" size="lg" mb={4} color="white" textShadow="2px 2px 4px rgba(0,0,0,0.8)">
-                Description
-              </Heading>
-              <Box bg="blackAlpha.300" p={6} borderRadius="md">
-                <Text fontSize="md" lineHeight="tall" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
-                  {vehicle.description}
-                </Text>
+            {vehicle.description && (
+              <Box>
+                <Heading as="h2" size="lg" mb={4} color="white" textShadow="2px 2px 4px rgba(0,0,0,0.8)">
+                  Description
+                </Heading>
+                <Box bg="blackAlpha.300" p={6} borderRadius="md">
+                  <Text fontSize="md" lineHeight="tall" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
+                    {vehicle.description}
+                  </Text>
+                </Box>
               </Box>
-            </Box>
+            )}
 
-            <Box>
-              <Heading as="h2" size="lg" mb={4} color="white" textShadow="2px 2px 4px rgba(0,0,0,0.8)">
-                Histoire
-              </Heading>
-              <Box bg="blackAlpha.300" p={6} borderRadius="md">
-                <Text fontSize="md" lineHeight="tall" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
-                  {vehicle.history}
-                </Text>
+            {vehicle.history && (
+              <Box>
+                <Heading as="h2" size="lg" mb={4} color="white" textShadow="2px 2px 4px rgba(0,0,0,0.8)">
+                  Histoire
+                </Heading>
+                <Box bg="blackAlpha.300" p={6} borderRadius="md">
+                  <Text fontSize="md" lineHeight="tall" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)">
+                    {vehicle.history}
+                  </Text>
+                </Box>
               </Box>
-            </Box>
+            )}
           </SimpleGrid>
 
           {/* Modal pour affichage plein écran */}
@@ -304,14 +322,16 @@ export default function VehicleDetails() {
             <ModalContent bg="transparent" shadow="none">
               <ModalCloseButton color="white" size="lg" />
               <ModalBody p={0}>
-                <Image
-                  src={galleryImages[selectedImage]}
-                  alt={`${vehicle.title} - Photo ${selectedImage + 1}`}
-                  width="100%"
-                  height="auto"
-                  maxH="90vh"
-                  objectFit="contain"
-                />
+                {galleryImages[selectedImage] && (
+                  <Image
+                    src={galleryImages[selectedImage]}
+                    alt={`${fullTitle} - Photo agrandie`}
+                    width="100%"
+                    height="auto"
+                    maxH="90vh"
+                    objectFit="contain"
+                  />
+                )}
               </ModalBody>
             </ModalContent>
           </Modal>

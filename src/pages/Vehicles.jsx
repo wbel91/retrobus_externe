@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   Container,
@@ -8,30 +8,66 @@ import {
   Image,
   SimpleGrid,
   Button,
+  Spinner,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import vehicleImage1 from "../assets/920_pres.jpg";
-import vehicleImage2 from "../assets/920_side.jpg";
-import vehicleImage3 from "../assets/920_back.jpg";
 
-const vehicles = [
-  {
-    id: "920",
-    title: "Mercedes‑Benz Citaro",
-    subtitle: "Citaro 1 €2",
-    make: "Mercedes Benz",
-    model: "Citaro 1 €2",
-    year: "juillet 2001",
-    registration: "FG-920-RE",
-    description:
-      "Mise en service commerciale en juillet 2001. Ce véhicule est un exemple emblématique de la gamme Citaro.",
-    history:
-      "Le Mercedes-Benz Citaro est un autobus urbain produit par Daimler AG. Introduit en 1997, il est devenu un standard dans les transports publics européens. Ce modèle, mis en service en juillet 2001, a servi dans plusieurs villes avant d'être préservé par l'association RétroBus Essonne.",
-    gallery: [vehicleImage1, vehicleImage2, vehicleImage3],
-  },
-];
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+// Images par défaut pour les véhicules
+const defaultImages = {
+  "920": [vehicleImage1],
+};
 
 export default function Vehicles() {
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/public/vehicles`);
+      if (!response.ok) {
+        throw new Error('Impossible de charger les véhicules');
+      }
+      const data = await response.json();
+      setVehicles(data);
+    } catch (err) {
+      console.error('Erreur chargement véhicules:', err);
+      setError(err.message);
+      // fallback statique
+      setVehicles([
+        {
+          parc: "920",
+          immat: "FG-920-RE",
+          modele: "Mercedes-Benz Citaro",
+          type: "Bus",
+          etat: "Préservé",
+          miseEnCirculation: "2001-07-01"
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container maxW="6xl" py={{ base: 6, md: 10 }} textAlign="center">
+        <Spinner size="xl" />
+        <Text mt={4}>Chargement des véhicules...</Text>
+      </Container>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -44,35 +80,79 @@ export default function Vehicles() {
           Nos Véhicules
         </Heading>
 
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        {error && (
+          <Alert status="warning" mb={6}>
+            <AlertIcon />
+            Données en mode hors ligne. {error}
+          </Alert>
+        )}
+
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {vehicles.map((vehicle) => (
             <Box
-              key={vehicle.id}
+              key={vehicle.parc}
               border="1px solid"
               borderColor="gray.200"
               borderRadius="md"
               overflow="hidden"
               p={4}
+              bg="white"
+              shadow="sm"
+              _hover={{ shadow: "md" }}
+              transition="all 0.2s"
             >
               <Image
-                src={vehicle.gallery[0]}
-                alt={vehicle.title}
+                src={defaultImages[vehicle.parc]?.[0] || vehicleImage1}
+                alt={vehicle.modele}
                 objectFit="cover"
+                w="100%"
+                h="200px"
                 mb={4}
+                borderRadius="md"
               />
+              
               <Heading as="h2" size="md" mb={2}>
-                {vehicle.title}
+                {vehicle.modele}
               </Heading>
-              <Text color="gray.600" mb={4}>
-                {vehicle.subtitle}
+              
+              <Text color="gray.600" fontSize="sm" mb={1}>
+                <strong>Parc:</strong> {vehicle.parc}
               </Text>
-              {console.log(`/vehicles/${vehicle.id}`)}
-              <Link to={`/vehicles/${vehicle.id}`}>
-                <Button colorScheme="teal">Voir les détails</Button>
+              
+              <Text color="gray.600" fontSize="sm" mb={1}>
+                <strong>Immatriculation:</strong> {vehicle.immat || "Non renseignée"}
+              </Text>
+              
+              <Text color="gray.600" fontSize="sm" mb={1}>
+                <strong>État:</strong> {vehicle.etat}
+              </Text>
+              
+              {vehicle.miseEnCirculation && (
+                <Text color="gray.600" fontSize="sm" mb={4}>
+                  <strong>Mise en circulation:</strong> {new Date(vehicle.miseEnCirculation).getFullYear()}
+                </Text>
+              )}
+
+              <Link to={`/vehicles/${vehicle.parc}`}>
+                <Button colorScheme="teal" size="sm">
+                  Voir les détails
+                </Button>
               </Link>
+              
+              {vehicle.synced_from === 'intranet' && (
+                <Text fontSize="xs" color="green.500" mt={2}>
+                  🔄 Synchronisé depuis l'intranet
+                </Text>
+              )}
             </Box>
           ))}
         </SimpleGrid>
+
+        {vehicles.length === 0 && !loading && (
+          <Text textAlign="center" color="gray.500" py={8}>
+            Aucun véhicule disponible pour le moment.
+          </Text>
+        )}
       </Container>
     </>
   );

@@ -7,8 +7,8 @@ import "./styles.css";
 import Home from "./pages/Home.jsx";
 import Vehicles from "./pages/Vehicles.jsx";
 import VehicleDetails from "./pages/VehicleDetails.jsx";
-import Events from "./pages/Events.jsx";
-import EventRegistration from "./pages/EventRegistration.jsx";
+import Events from "./pages/Events";
+import EventRegistration from "./pages/EventRegistration";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import Photos from "./pages/Photos.jsx";
@@ -24,7 +24,10 @@ export default function App() {
           <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/vehicles/:id" element={<VehicleDetails />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/event-registration" element={<EventRegistration />} />
+          <Route
+            path="/event-registration"
+            element={<div>DEBUG EVENT REGISTRATION</div>}
+          />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />
