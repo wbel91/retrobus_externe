@@ -24,7 +24,14 @@ import {
 } from "@chakra-ui/react";
 import { FiChevronLeft, FiChevronRight, FiArrowLeft } from "react-icons/fi";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+function resolve(src) {
+  if (!src) return src;
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/')) return API_BASE_URL + src;
+  return API_BASE_URL + '/' + src;
+}
 
 // __HERO_VERSION_ACTIVE__ - Version HERO plein écran avec overlay et background
 export default function VehicleDetails() {
@@ -44,7 +51,7 @@ export default function VehicleDetails() {
   useEffect(() => {
     let abort = false;
     setLoading(true);
-    fetch(`${API_BASE}/public/vehicles/${id}`)
+    fetch(`${API_BASE_URL}/public/vehicles/${id}`)
       .then(r => {
         if (!r.ok) throw new Error('Not found');
         return r.json();
@@ -96,8 +103,8 @@ export default function VehicleDetails() {
 
   // Normaliser les données du véhicule
   const gallery = Array.isArray(vehicle.gallery) && vehicle.gallery.length > 0
-    ? vehicle.gallery
-    : ['/assets/photos/920_back.jpg'];
+    ? vehicle.gallery.map(resolve)
+    : [resolve('/assets/photos/920_back.jpg')];
 
   // Images de la galerie (sans la première qui sert de fond)
   const galleryImages = gallery.slice(1);
@@ -107,7 +114,7 @@ export default function VehicleDetails() {
     : null;
 
   // Déterminer l'image de fond (backgroundImage ou première de la galerie)
-  const backgroundImage = vehicle.backgroundImage || gallery[0];
+  const backgroundImage = resolve(vehicle.backgroundImage || gallery[0]);
   const backgroundPosition = vehicle.backgroundPosition || 'center';
 
   const nextImage = () => {
@@ -337,6 +344,9 @@ export default function VehicleDetails() {
           </Modal>
         </Container>
       </Box>
-    </Box>
+
+
+
+}  );    </Box>    </Box>
   );
 }
