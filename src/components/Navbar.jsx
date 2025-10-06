@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Box,
@@ -10,12 +10,16 @@ import {
   DrawerHeader,
   DrawerBody,
   VStack,
+  HStack,
+  Tooltip,
   useDisclosure,
   useBreakpointValue
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
-export default function Navbar() {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNewsletterClick }) {
   const { pathname } = useLocation();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -26,33 +30,81 @@ export default function Navbar() {
     { to: "/evenements", label: "Événements" },
     { to: "/retromerch", label: "RétroMerch" },
     { to: "/contact", label: "Contact" },
-    { to: "/donate", label: "💝 Nous faire un don", special: true }, // Ajout du don
   ];
 
-  // Version Desktop (original)
   if (!isMobile) {
     return (
-      <nav className="site-nav" aria-label="Navigation principale">
-        <div className="site-nav__inner">
-          {items.filter(item => !item.special).map((it) => (
-            <Link
-              key={it.to}
-              to={it.to}
-              className={`nav-btn ${pathname === it.to ? "active" : ""}`}
-              aria-current={pathname === it.to ? "page" : undefined}
+      <nav className="site-nav" aria-label="Navigation principale" style={{ position: 'relative' }}>
+        {/* Contenu navigation centré */}
+        <Box
+            className="site-nav__inner"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            px={4}
+            gap={8}
+        >
+          <HStack gap={2}>
+            {items.map((it) => (
+              <Link
+                key={it.to}
+                to={it.to}
+                className={`nav-btn ${pathname === it.to ? "active" : ""}`}
+                aria-current={pathname === it.to ? "page" : undefined}
+              >
+                {it.label}
+              </Link>
+            ))}
+          </HStack>
+        </Box>
+
+        {/* Icônes complètement à droite (hors flux) */}
+        <HStack
+          spacing={5}
+          position="absolute"
+          right="12px"
+          top="50%"
+          transform="translateY(-50%)"
+          pr={{ base: 2, lg: 4 }}
+        >
+          <Tooltip label="Soutenir l'association" hasArrow placement="bottom">
+            <Box
+              as="button"
+              onClick={onDonateClick}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              transition="all .25s"
+              _hover={{ transform: "scale(1.15)" }}
+              _active={{ transform: "scale(1.05)" }}
+              aria-label="Faire un don"
             >
-              {it.label}
-            </Link>
-          ))}
-        </div>
+              {donateIcon}
+            </Box>
+          </Tooltip>
+          <Tooltip label="S'inscrire à la newsletter" hasArrow placement="bottom">
+            <Box
+              as="button"
+              onClick={onNewsletterClick}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              transition="all .25s"
+              _hover={{ transform: "scale(1.15)" }}
+              _active={{ transform: "scale(1.05)" }}
+              aria-label="Inscription newsletter"
+            >
+              {newsletterIcon}
+            </Box>
+          </Tooltip>
+        </HStack>
       </nav>
     );
   }
 
-  // Version Mobile
+  // Mobile
   return (
     <>
-      {/* Menu Hamburger à DROITE */}
       <Box
         position="fixed"
         top="20px"
@@ -74,7 +126,6 @@ export default function Navbar() {
         />
       </Box>
 
-      {/* Drawer Mobile depuis la DROITE */}
       <Drawer isOpen={isOpen} onClose={onClose} placement="right">
         <DrawerOverlay />
         <DrawerContent>
@@ -94,18 +145,41 @@ export default function Navbar() {
                   <Box
                     p={4}
                     bg={pathname === item.to ? "var(--rbe-red)" : "white"}
-                    color={pathname === item.to ? "white" : item.special ? "var(--rbe-red)" : "gray.700"}
+                    color={pathname === item.to ? "white" : "gray.700"}
                     borderBottom="1px solid"
                     borderColor="gray.200"
-                    _hover={{ bg: item.special ? "red.50" : "gray.50" }}
+                    _hover={{ bg: "gray.50" }}
                     transition="all 0.2s"
-                    fontWeight={item.special ? "700" : "600"}
-                    fontSize={item.special ? "lg" : "md"}
+                    fontWeight="600"
                   >
                     {item.label}
                   </Box>
                 </Link>
               ))}
+
+              <Box
+                p={4}
+                display="flex"
+                gap={6}
+                justifyContent="center"
+                borderTop="1px solid"
+                borderColor="gray.200"
+              >
+                <Box
+                  as="button"
+                  onClick={() => { onDonateClick(); onClose(); }}
+                  aria-label="Faire un don"
+                >
+                  {donateIcon}
+                </Box>
+                <Box
+                  as="button"
+                  onClick={() => { onNewsletterClick(); onClose(); }}
+                  aria-label="Inscription newsletter"
+                >
+                  {newsletterIcon}
+                </Box>
+              </Box>
             </VStack>
           </DrawerBody>
         </DrawerContent>
@@ -113,3 +187,35 @@ export default function Navbar() {
     </>
   );
 }
+
+const handleNewsletterSubmit = async (e) => {
+  e.preventDefault();
+  if (!newsletterEmail.trim() || !newsletterEmail.includes('@')) {
+    setNewsletterStatus('error');
+    return;
+  }
+  setIsSubmitting(true);
+  setNewsletterStatus(null);
+  try {
+    const res = await fetch(`${API_URL}/newsletter/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newsletterEmail.trim() })
+    });
+    if (!res.ok) throw new Error('Erreur serveur');
+    const json = await res.json();
+    if (json.duplicated) {
+      setNewsletterStatus('ok'); // On considère OK même si déjà inscrit
+    } else {
+      setNewsletterStatus('ok');
+    }
+    setNewsletterEmail('');
+    setTimeout(() => setNewsletterStatus(null), 3000);
+  } catch (e) {
+    console.error('Newsletter subscribe error:', e);
+    setNewsletterStatus('error');
+    setTimeout(() => setNewsletterStatus(null), 4000);
+  } finally {
+    setIsSubmitting(false);
+  }
+};

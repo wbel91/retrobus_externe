@@ -129,6 +129,7 @@ export default function VehicleDetails() {
 
   return (
     <Box
+      className="vehicle-detail-landing"    // ← AJOUTER CETTE CLASSE
       position="relative"
       width="100vw"
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"

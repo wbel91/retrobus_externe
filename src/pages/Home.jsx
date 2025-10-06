@@ -85,7 +85,7 @@ export default function Home() {
       </Helmet>
 
       <Box
-        className="page-with-mark"
+        className="page-with-mark home-landing"   // ← ajout de la classe home-landing
         style={{
           "--page-mark": `url(${pageBg})`,
           "--mark-size": "560px",

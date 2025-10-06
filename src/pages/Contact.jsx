@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import emailjs from '@emailjs/browser';
 import { 
   Box, 
   Heading, 
   Text, 
   VStack, 
-  Button
+  Button,
+  Alert,
+  AlertIcon
 } from "@chakra-ui/react";
 
 export default function Contact() {
@@ -17,8 +20,13 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
 
-  // Masquer la scrollbar horizontale au niveau global
+  // Configuration EmailJS avec vos vraies clés
+  const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_3io7x5o";
+  const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "templayte";
+  const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "GhgeaI8LyQGYubsHDmHmc";
+
   useEffect(() => {
     document.body.style.overflowX = "hidden";
     return () => {
@@ -37,35 +45,44 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setShowError(false);
     
-    const emailData = {
-      to: "association.rbe@gmail.com",
-      from: formData.email,
-      subject: `[Site RétroBus] ${formData.subject}`,
-      message: `
-Nouveau message depuis le site RétroBus Essonne
+    try {
+      // Préparation des données pour le template EmailJS
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        to_email: 'association.rbe@gmail.com',
+        reply_to: formData.email
+      };
 
-Nom: ${formData.name}
-Email: ${formData.email}
-Sujet: ${formData.subject}
+      console.log('📧 Envoi email via EmailJS...', {
+        service: EMAILJS_SERVICE_ID,
+        template: EMAILJS_TEMPLATE_ID
+      });
 
-Message:
-${formData.message}
-
----
-Envoyé depuis le formulaire de contact du site web
-      `.trim()
-    };
-    
-    console.log("Données à envoyer à association.rbe@gmail.com:", emailData);
-    
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    
-    setTimeout(() => setShowSuccess(false), 5000);
+      // Envoi via EmailJS
+      const result = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_PUBLIC_KEY
+      );
+      
+      console.log('✅ Email envoyé avec succès:', result);
+      setShowSuccess(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setTimeout(() => setShowSuccess(false), 5000);
+      
+    } catch (error) {
+      console.error('❌ Erreur EmailJS:', error);
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputStyle = {
@@ -152,14 +169,17 @@ Envoyé depuis le formulaire de contact du site web
               </Box>
 
               {showSuccess && (
-                <Box p={3} bg="green.50" borderRadius="md" borderLeft="4px solid" borderColor="green.400">
-                  <Text color="green.700" fontWeight="600" fontSize="md">
-                    ✅ Message envoyé avec succès !
-                  </Text>
-                  <Text fontSize="sm" color="green.600">
-                    Votre message a été transmis à association.rbe@gmail.com
-                  </Text>
-                </Box>
+                <Alert status="success" mb={4}>
+                  <AlertIcon />
+                  Message envoyé avec succès !
+                </Alert>
+              )}
+              
+              {showError && (
+                <Alert status="error" mb={4}>
+                  <AlertIcon />
+                  Erreur lors de l'envoi. Veuillez réessayer ou nous contacter directement.
+                </Alert>
               )}
 
               <form onSubmit={handleSubmit}>

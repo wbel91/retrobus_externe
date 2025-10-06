@@ -13,6 +13,7 @@ import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import Photos from "./pages/Photos.jsx";
 import Donate from "./pages/Donate.jsx";
+import Newsletter from "./pages/Newsletter"; // ← nouveau
 
 export default function App() {
   return (
@@ -32,6 +33,10 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/donate" element={<Donate />} />
+          <Route
+            path="/dashboard/newsletter"
+            element={<ProtectedRoute><Newsletter /></ProtectedRoute>}
+          />
           {/* Route de debug */}
           <Route
             path="*"

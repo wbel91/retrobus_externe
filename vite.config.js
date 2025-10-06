@@ -7,7 +7,7 @@ export default defineConfig({
     host: true,
     port: 3000,
     open: true,
-    historyApiFallback: true, // Add this line for SPA fallback
+    historyApiFallback: true, // SPA fallback en dev
   },
   build: {
     rollupOptions: {
@@ -18,4 +18,9 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 3000,
+    host: true,
+    historyApiFallback: true, // SPA fallback en preview
+  }
 });

@@ -1,60 +1,87 @@
 ﻿import "../styles.css";
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
-import { 
-  Box, 
-  Tooltip, 
-  Modal, 
-  ModalOverlay, 
-  ModalContent, 
-  ModalHeader, 
-  ModalCloseButton, 
+import {
+  Box,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
   ModalBody,
   useDisclosure,
   VStack,
   Text,
   Heading,
   Button,
+  Input,
+  FormControl,
+  FormLabel,
   HStack
 } from "@chakra-ui/react";
 import bg from "../assets/rbe_920.jpg";
 import logoDefault from "../assets/rbe_logo.svg";
 import Navbar from "./Navbar.jsx";
 
-// Icône main avec cœur au-dessus
-const HandHeartIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Cœur au-dessus */}
-    <path
-      d="M12 6.5c1.4-1.5 3.5-1.5 4.9 0C18.3 7.9 18.3 10.1 17 11.4L12 16.5L7 11.4C5.7 10.1 5.7 7.9 7.1 6.5c1.4-1.5 3.5-1.5 4.9 0z"
-      fill="white"
-    />
-    {/* Main ouverte en dessous */}
-    <path
-      d="M4 14h2v6H4v-6zm3-2h2v8H7v-8zm3-1h2v9h-2v-9zm3 2h2v7h-2v-7zm3 1h2v6h-2v-6z"
-      fill="white"
-      opacity="0.9"
-    />
-    <path
-      d="M3 21h18v1H3v-1z"
-      fill="white"
-      opacity="0.7"
-    />
+// Icônes (remplies en rouge rétrobus)
+const HandHeartIcon = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="var(--rbe-red)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 6.5c1.4-1.5 3.5-1.5 4.9 0C18.3 7.9 18.3 10.1 17 11.4L12 16.5 7 11.4C5.7 10.1 5.7 7.9 7.1 6.5c1.4-1.5 3.5-1.5 4.9 0z"/>
+    <path d="M4 14h2v6H4v-6Zm3-2h2v8H7v-8Zm3-1h2v9h-2v-9Zm3 2h2v7h-2v-7Zm3 1h2v6h-2v-6Z" opacity=".9"/>
+    <path d="M3 21h18v1H3z" opacity=".6"/>
+  </svg>
+);
+
+const EnvelopeIcon = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="var(--rbe-red)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 6c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v.4L12 12 3 6.4V6Zm0 2.8V18c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.8l-9.3 5.7a1 1 0 0 1-1.05 0L3 8.8Z"/>
   </svg>
 );
 
 export default function Header() {
   const { pathname } = useLocation();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // Modal don
+  const {
+    isOpen: isDonateOpen,
+    onOpen: onDonateOpen,
+    onClose: onDonateClose
+  } = useDisclosure();
+
+  // Modal newsletter
+  const {
+    isOpen: isNewsOpen,
+    onOpen: onNewsOpen,
+    onClose: onNewsClose
+  } = useDisclosure();
+
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState(null); // 'ok' | 'error' | null
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   let logo = logoDefault;
   if (pathname.startsWith("/retromerch")) logo = logoDefault;
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim() || !newsletterEmail.includes("@")) {
+      setNewsletterStatus("error");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      // TODO: brancher sur une vraie API d'inscription (ex: /newsletter/subscribe)
+      console.log("📬 Newsletter subscription:", newsletterEmail);
+      await new Promise(r => setTimeout(r, 800));
+      setNewsletterStatus("ok");
+      setNewsletterEmail("");
+      setTimeout(() => setNewsletterStatus(null), 3000);
+    } catch {
+      setNewsletterStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -66,55 +93,26 @@ export default function Header() {
         />
         <div className="header-inner">
           <img src={logo} alt="RétroBus Essonne" className="header-logo" />
-
-          {/* Icône de don en haut à droite */}
-          <Box
-            position="absolute"
-            top="24px"
-            right="24px"
-            zIndex={10}
-          >
-            <Tooltip
-              label="Soutenir l'association"
-              placement="bottom"
-              bg="blackAlpha.800"
-              color="white"
-              fontSize="sm"
-            >
-              <Box
-                onClick={onOpen}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                cursor="pointer"
-                transition="all 0.3s ease"
-                _hover={{
-                  transform: "scale(1.15)",
-                  filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))"
-                }}
-                _active={{
-                  transform: "scale(1.05)"
-                }}
-                aria-label="Faire un don"
-              >
-                <HandHeartIcon />
-              </Box>
-            </Tooltip>
-          </Box>
         </div>
       </header>
 
-      {/* Modal HelloAsso optimisée */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
+      {/* Navbar avec icônes à droite */}
+      <Navbar
+        donateIcon={<HandHeartIcon size={26} />}
+        newsletterIcon={<EnvelopeIcon size={26} />}
+        onDonateClick={onDonateOpen}
+        onNewsletterClick={onNewsOpen}
+      />
+
+      {/* Modal DON (inchangé sauf déplacement) */}
+      <Modal isOpen={isDonateOpen} onClose={onDonateClose} size="lg" isCentered>
         <ModalOverlay bg="blackAlpha.600" />
         <ModalContent maxW="500px" bg="white" borderRadius="lg">
           <ModalHeader bg="var(--rbe-red)" color="white" borderTopRadius="lg" py={4}>
             <Heading size="md">💝 Soutenir RétroBus Essonne</Heading>
           </ModalHeader>
           <ModalCloseButton color="white" />
-          
           <ModalBody p={0}>
-            {/* Widget HelloAsso intégré - COMPACT */}
             <Box p={4}>
               <iframe
                 src="https://www.helloasso.com/associations/association-retrobus-essonne/formulaires/3/widget"
@@ -128,18 +126,16 @@ export default function Header() {
                 loading="lazy"
               />
             </Box>
-
-            {/* Footer simplifié */}
             <Box p={4} bg="gray.50" borderBottomRadius="lg">
               <VStack spacing={2}>
                 <Text fontSize="xs" color="gray.600" textAlign="center">
                   🏛️ 66% déductible des impôts • 🔒 Paiement sécurisé
                 </Text>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
+                <Button
+                  size="sm"
+                  variant="ghost"
                   color="gray.500"
-                  onClick={onClose}
+                  onClick={onDonateClose}
                   fontSize="xs"
                 >
                   Fermer
@@ -150,8 +146,58 @@ export default function Header() {
         </ModalContent>
       </Modal>
 
-      {/* Navbar rendered immediately after header */}
-      <Navbar />
+      {/* Modal NEWSLETTER */}
+      <Modal isOpen={isNewsOpen} onClose={() => { onNewsClose(); setNewsletterStatus(null); }} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader bg="var(--rbe-red)" color="white">📬 Inscription Newsletter</ModalHeader>
+            <ModalCloseButton color="white" />
+            <ModalBody pb={6} pt={4}>
+              <VStack align="stretch" spacing={4}>
+                <Text fontSize="sm" color="gray.600">
+                  Recevez les actualités, événements et infos du parc directement par email.
+                </Text>
+                <form onSubmit={handleNewsletterSubmit}>
+                  <VStack align="stretch" spacing={3}>
+                    <FormControl>
+                      <FormLabel fontSize="sm" mb={1}>Votre email</FormLabel>
+                      <Input
+                        type="email"
+                        placeholder="vous@example.com"
+                        value={newsletterEmail}
+                        onChange={(e) => setNewsletterEmail(e.target.value)}
+                        required
+                        bg="white"
+                      />
+                    </FormControl>
+                    {newsletterStatus === "ok" && (
+                      <Text fontSize="sm" color="green.600">✅ Inscription enregistrée !</Text>
+                    )}
+                    {newsletterStatus === "error" && (
+                      <Text fontSize="sm" color="red.500">❌ Email invalide ou erreur. Réessayez.</Text>
+                    )}
+                    <HStack justify="flex-end" pt={2}>
+                      <Button variant="ghost" onClick={onNewsClose}>
+                        Annuler
+                      </Button>
+                      <Button
+                        type="submit"
+                        colorScheme="red"
+                        bg="var(--rbe-red)"
+                        isLoading={isSubmitting}
+                      >
+                        S'inscrire
+                      </Button>
+                    </HStack>
+                  </VStack>
+                </form>
+                <Text fontSize="xs" color="gray.500" textAlign="center">
+                  Vous pourrez vous désinscrire à tout moment.
+                </Text>
+              </VStack>
+            </ModalBody>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
