@@ -19,8 +19,8 @@ import {
   FormLabel,
   HStack
 } from "@chakra-ui/react";
-import bg from "../assets/rbe_920.jpg";
-import logoDefault from "../assets/rbe_logo.svg";
+import bg from "../assets/_MG_0969.jpg";
+import logoDefault from "../assets/RétroBouh2025.svg";
 import Navbar from "./Navbar.jsx";
 
 // Icônes (remplies en rouge rétrobus)
@@ -62,6 +62,8 @@ export default function Header() {
   let logo = logoDefault;
   if (pathname.startsWith("/retromerch")) logo = logoDefault;
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
     if (!newsletterEmail.trim() || !newsletterEmail.includes("@")) {
@@ -69,15 +71,32 @@ export default function Header() {
       return;
     }
     setIsSubmitting(true);
+    setNewsletterStatus(null);
+    
     try {
-      // TODO: brancher sur une vraie API d'inscription (ex: /newsletter/subscribe)
       console.log("📬 Newsletter subscription:", newsletterEmail);
-      await new Promise(r => setTimeout(r, 800));
+      
+      const res = await fetch(`${API_URL}/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail.trim() })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
+      const json = await res.json();
+      console.log("✅ Newsletter subscription successful:", json);
+      
       setNewsletterStatus("ok");
       setNewsletterEmail("");
       setTimeout(() => setNewsletterStatus(null), 3000);
-    } catch {
+      
+    } catch (e) {
+      console.error("❌ Newsletter subscription failed:", e);
       setNewsletterStatus("error");
+      setTimeout(() => setNewsletterStatus(null), 4000);
     } finally {
       setIsSubmitting(false);
     }

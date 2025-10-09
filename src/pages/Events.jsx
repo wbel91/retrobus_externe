@@ -162,7 +162,8 @@ export default function Events() {
     console.log(`🎯 Button logic for "${event.title}":`, {
       isVisible: info.isVisible,
       requiresRegistration: info.requiresRegistration,
-      allowPublicRegistration: info.allowPublicRegistration
+      allowPublicRegistration: info.allowPublicRegistration,
+      eventType: info.eventType
     });
     
     // LOGIQUE CLAIRE ET SIMPLE :
@@ -173,7 +174,25 @@ export default function Events() {
       return null;
     }
     
-    // 2. Pas d'inscription requise → Ouvert au public
+    // 2. Sortie Privée spéciale → Bouton inactif "Sortie Privée"
+    if (info.eventType === 'private_outing' || (!info.requiresRegistration && !info.allowPublicRegistration && info.eventType !== 'public_open_access')) {
+      console.log(`🔒 Private outing → Disabled button`);
+      return (
+        <Button
+          leftIcon={<FiEyeOff />}
+          variant="outline"
+          colorScheme="yellow"
+          size="lg"
+          className="event-btn"
+          isDisabled
+          cursor="not-allowed"
+        >
+          Sortie Privée
+        </Button>
+      );
+    }
+    
+    // 3. Pas d'inscription requise → Ouvert au public
     if (!info.requiresRegistration) {
       console.log(`🌍 No registration required → Open to public`);
       return (
@@ -189,7 +208,7 @@ export default function Events() {
       );
     }
     
-    // 3. Inscription requise MAIS public ne peut pas s'inscrire → Contacter l'association
+    // 4. Inscription requise MAIS public ne peut pas s'inscrire → Contacter l'association
     if (info.requiresRegistration && !info.allowPublicRegistration) {
       console.log(`📞 Registration required but not public → Contact association`);
       return (
@@ -207,7 +226,7 @@ export default function Events() {
       );
     }
     
-    // 4. Inscription requise ET public peut s'inscrire → Vérifier deadline puis méthode
+    // 5. Inscription requise ET public peut s'inscrire → Vérifier deadline puis méthode
     if (info.requiresRegistration && info.allowPublicRegistration) {
       console.log(`✅ Registration required and public allowed`);
       

@@ -23,22 +23,25 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { FiChevronLeft, FiChevronRight, FiArrowLeft } from "react-icons/fi";
+import EventBanner from "../components/EventBanner";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 function resolve(src) {
   if (!src) return src;
+  // Si c'est déjà une data URL (base64), la retourner telle quelle
+  if (src.startsWith('data:')) return src;
+  // Si c'est une URL complète, la retourner telle quelle
   if (src.startsWith('http')) return src;
+  // Sinon, construire l'URL avec l'API_BASE_URL
   if (src.startsWith('/')) return API_BASE_URL + src;
   return API_BASE_URL + '/' + src;
 }
 
-// __HERO_VERSION_ACTIVE__ - Version HERO plein écran avec overlay et background
 export default function VehicleDetails() {
-  console.log("__HERO_VERSION_ACTIVE__ - Version HERO chargée");
-  
   const { id } = useParams();
   const [vehicle, setVehicle] = useState(null);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -51,19 +54,37 @@ export default function VehicleDetails() {
   useEffect(() => {
     let abort = false;
     setLoading(true);
-    fetch(`${API_BASE_URL}/public/vehicles/${id}`)
+    
+    // Récupérer les données du véhicule
+    const fetchVehicle = fetch(`${API_BASE_URL}/public/vehicles/${id}`)
       .then(r => {
-        if (!r.ok) throw new Error('Not found');
+        if (!r.ok) throw new Error('Vehicle not found');
+        return r.json();
+      });
+    
+    // Récupérer les événements associés au véhicule
+    const fetchEvents = fetch(`${API_BASE_URL}/public/vehicles/${id}/events`)
+      .then(r => {
+        if (!r.ok) return [];
         return r.json();
       })
       .then(data => {
+        // Trier les événements par date décroissante (plus récent en premier)
+        return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      })
+      .catch(() => []);
+
+    Promise.all([fetchVehicle, fetchEvents])
+      .then(([vehicleData, eventsData]) => {
         if (abort) return;
-        setVehicle(data);
+        setVehicle(vehicleData);
+        setEvents(eventsData);
       })
       .catch(e => {
         if (!abort) setError(e.message);
       })
       .finally(() => !abort && setLoading(false));
+      
     return () => { abort = true; };
   }, [id]);
 
@@ -129,7 +150,7 @@ export default function VehicleDetails() {
 
   return (
     <Box
-      className="vehicle-detail-landing"    // ← AJOUTER CETTE CLASSE
+      className="vehicle-detail-landing"
       position="relative"
       width="100vw"
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"
@@ -166,6 +187,9 @@ export default function VehicleDetails() {
           >
             Retour aux véhicules
           </Button>
+
+          {/* Banderole d'événement */}
+          <EventBanner events={events} />
 
           {/* En-tête directement sur l'image de fond */}
           <VStack align="start" spacing={4} mb={6}>

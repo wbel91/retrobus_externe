@@ -95,7 +95,7 @@ a:hover {
   background-repeat: no-repeat;
   background-size: cover;
   background-position-x: center;
-  background-position-y: var(--bg-pos-y);
+  background-position-y: -650px;
   z-index: -1;
 }
 
@@ -109,7 +109,7 @@ a:hover {
 }
 
 .header-logo {
-  height: var(--header-h);
+  height: 120px;
   width: auto;
   object-fit: contain;
   display: block;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Box,
@@ -13,16 +13,108 @@ import {
   HStack,
   Tooltip,
   useDisclosure,
-  useBreakpointValue
+  useBreakpointValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Text,
+  useToast
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNewsletterClick }) {
-  const { pathname } = useLocation();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isNewsletterOpen, 
+    onOpen: onNewsletterOpen, 
+    onClose: onNewsletterClose 
+  } = useDisclosure();
+  
+  const location = useLocation();
   const isMobile = useBreakpointValue({ base: true, md: false });
+  const toast = useToast();
+
+  // Newsletter state
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim() || !newsletterEmail.includes('@')) {
+      setNewsletterStatus('error');
+      return;
+    }
+    setIsSubmitting(true);
+    setNewsletterStatus(null);
+    
+    try {
+      const res = await fetch(`${API_URL}/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail.trim() })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
+      const json = await res.json();
+      
+      if (json.duplicated) {
+        toast({
+          status: "info",
+          title: "Déjà inscrit",
+          description: "Cet email est déjà dans notre liste de diffusion.",
+          duration: 3000
+        });
+      } else {
+        toast({
+          status: "success",
+          title: "Inscription réussie",
+          description: "Vous recevrez nos prochaines actualités !",
+          duration: 3000
+        });
+      }
+      
+      setNewsletterStatus('ok');
+      setNewsletterEmail('');
+      setTimeout(() => {
+        setNewsletterStatus(null);
+        onNewsletterClose();
+      }, 1500);
+      
+    } catch (e) {
+      console.error('Newsletter subscribe error:', e);
+      setNewsletterStatus('error');
+      toast({
+        status: "error",
+        title: "Erreur d'inscription",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+        duration: 4000
+      });
+      setTimeout(() => setNewsletterStatus(null), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNewsletterClick = () => {
+    if (onNewsletterClick) {
+      onNewsletterClick();
+    } else {
+      onNewsletterOpen();
+    }
+  };
 
   const items = [
     { to: "/", label: "Accueil" },
@@ -49,8 +141,8 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
               <Link
                 key={it.to}
                 to={it.to}
-                className={`nav-btn ${pathname === it.to ? "active" : ""}`}
-                aria-current={pathname === it.to ? "page" : undefined}
+                className={`nav-btn ${location.pathname === it.to ? "active" : ""}`}
+                aria-current={location.pathname === it.to ? "page" : undefined}
               >
                 {it.label}
               </Link>
@@ -85,7 +177,7 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
           <Tooltip label="S'inscrire à la newsletter" hasArrow placement="bottom">
             <Box
               as="button"
-              onClick={onNewsletterClick}
+              onClick={handleNewsletterClick}
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -144,8 +236,8 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
                 >
                   <Box
                     p={4}
-                    bg={pathname === item.to ? "var(--rbe-red)" : "white"}
-                    color={pathname === item.to ? "white" : "gray.700"}
+                    bg={location.pathname === item.to ? "var(--rbe-red)" : "white"}
+                    color={location.pathname === item.to ? "white" : "gray.700"}
                     borderBottom="1px solid"
                     borderColor="gray.200"
                     _hover={{ bg: "gray.50" }}
@@ -184,38 +276,72 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
+      {/* Newsletter Modal */}
+      <Modal isOpen={isNewsletterOpen} onClose={onNewsletterClose} isCentered>
+        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(4px)" />
+        <ModalContent 
+          bg="linear-gradient(135deg, var(--rbe-red) 0%, var(--rbe-accent) 100%)"
+          color="white"
+          borderRadius="xl"
+          maxW="md"
+        >
+          <ModalHeader fontSize="xl" fontWeight="bold">
+            📧 Newsletter RétroBus Essonne
+          </ModalHeader>
+          <ModalCloseButton color="white" />
+          <ModalBody pb={6} pt={4}>
+            <VStack align="stretch" spacing={4}>
+              <Text fontSize="sm" color="gray.100">
+                Recevez les actualités, événements et infos du parc directement par email.
+              </Text>
+              <form onSubmit={handleNewsletterSubmit}>
+                <VStack align="stretch" spacing={3}>
+                  <FormControl>
+                    <FormLabel fontSize="sm" mb={1} color="white">
+                      Votre email
+                    </FormLabel>
+                    <Input
+                      type="email"
+                      placeholder="vous@example.com"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      required
+                      bg="white"
+                      color="black"
+                      _placeholder={{ color: "gray.500" }}
+                    />
+                  </FormControl>
+                  
+                  {newsletterStatus === "ok" && (
+                    <Text fontSize="sm" color="green.200">
+                      ✅ Inscription enregistrée !
+                    </Text>
+                  )}
+                  
+                  {newsletterStatus === "error" && (
+                    <Text fontSize="sm" color="red.200">
+                      ❌ Erreur. Vérifiez votre email.
+                    </Text>
+                  )}
+                  
+                  <Button
+                    type="submit"
+                    colorScheme="whiteAlpha"
+                    bg="whiteAlpha.200"
+                    color="white"
+                    _hover={{ bg: "whiteAlpha.300" }}
+                    isLoading={isSubmitting}
+                    loadingText="Inscription..."
+                  >
+                    M'inscrire
+                  </Button>
+                </VStack>
+              </form>
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
-
-const handleNewsletterSubmit = async (e) => {
-  e.preventDefault();
-  if (!newsletterEmail.trim() || !newsletterEmail.includes('@')) {
-    setNewsletterStatus('error');
-    return;
-  }
-  setIsSubmitting(true);
-  setNewsletterStatus(null);
-  try {
-    const res = await fetch(`${API_URL}/newsletter/subscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: newsletterEmail.trim() })
-    });
-    if (!res.ok) throw new Error('Erreur serveur');
-    const json = await res.json();
-    if (json.duplicated) {
-      setNewsletterStatus('ok'); // On considère OK même si déjà inscrit
-    } else {
-      setNewsletterStatus('ok');
-    }
-    setNewsletterEmail('');
-    setTimeout(() => setNewsletterStatus(null), 3000);
-  } catch (e) {
-    console.error('Newsletter subscribe error:', e);
-    setNewsletterStatus('error');
-    setTimeout(() => setNewsletterStatus(null), 4000);
-  } finally {
-    setIsSubmitting(false);
-  }
-};

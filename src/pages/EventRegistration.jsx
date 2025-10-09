@@ -315,271 +315,271 @@ export default function EventRegistration() {
   const eventInfo = getEventTypeInfo(event);
 
   return (
-    <>
-      <Helmet>
-        <title>Inscription : {event.title}</title>
-        <meta name="description" content={`Inscription pour ${event.title} - ${event.date}`} />
-      </Helmet>
+  <Container maxW="container.md" py={10}>
+    {/* Navigation */}
+    <Button
+      as={Link}
+      to="/events"
+      leftIcon={<FiArrowLeft />}
+      mb={6}
+      variant="outline"
+      colorScheme="gray"
+    >
+      Retour aux événements
+    </Button>
 
-      <Container maxW="container.md" py={10}>
-        {/* Navigation */}
-        <Button 
-          as={Link} 
-          to="/events" 
-          leftIcon={<FiArrowLeft />} 
-          mb={6} 
-          variant="outline"
-          colorScheme="gray"
-        >
-          Retour aux événements
-        </Button>
+    {/* En-tête de l'événement */}
+    <VStack spacing={6} textAlign="center" mb={8}>
+      <Heading as="h1" size="xl" color="var(--rbe-red)">
+        {event.title}
+      </Heading>
 
-        {/* En-tête de l'événement */}
-        <VStack spacing={6} textAlign="center" mb={8}>
-          <Heading as="h1" size="xl" color="var(--rbe-red)">
-            {event.title}
-          </Heading>
-          
-          <HStack spacing={4} justify="center" wrap="wrap">
-            <HStack>
-              <Icon as={FiCalendar} color="var(--rbe-red)" />
-              <Badge colorScheme="orange" fontSize="md" px={3} py={1}>
-                {event.date}
-              </Badge>
-            </HStack>
-            {event.time && (
-              <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
-                {event.time}
-              </Badge>
-            )}
-          </HStack>
-          
-          {event.location && (
-            <HStack>
-              <Icon as={FiMapPin} color="var(--rbe-red)" />
-              <Text fontSize="lg" color="gray.600">
-                {event.location}
-              </Text>
-            </HStack>
-          )}
-        </VStack>
+      <HStack spacing={4} justify="center" flexWrap="wrap">
+        <HStack>
+          <Icon as={FiCalendar} color="var(--rbe-red)" />
+          <Badge colorScheme="orange" fontSize="md" px={3} py={1}>
+            {event.date}
+          </Badge>
+        </HStack>
+        {event.time && (
+          <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
+            {event.time}
+          </Badge>
+        )}
+      </HStack>
 
-        {registrationStep === 'form' && (
-          <>
-            {/* Description */}
-            {event.description && (
-              <Box mb={8} p={6} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                <Heading size="md" mb={4} color="var(--rbe-red)">
-                  📝 Description
-                </Heading>
-                <Text lineHeight="1.7" color="gray.700">
-                  {event.description}
-                </Text>
-              </Box>
-            )}
+      {event.location && (
+        <HStack>
+          <Icon as={FiMapPin} color="var(--rbe-red)" />
+          <Text fontSize="lg" color="gray.600">
+            {event.location}
+          </Text>
+        </HStack>
+      )}
+    </VStack>
 
-            {/* Formulaire d'inscription */}
-            <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" mb={6}>
-              <Heading size="md" mb={6} color="var(--rbe-red)">
-                <Icon as={FiUsers} mr={2} />
-                Inscription
-              </Heading>
-
-              <VStack spacing={6}>
-                {/* Informations personnelles */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w="100%">
-                  <FormControl isRequired>
-                    <FormLabel>
-                      <Icon as={FiUser} mr={2} />
-                      Nom complet
-                    </FormLabel>
-                    <Input
-                      value={formData.participantName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, participantName: e.target.value }))}
-                      placeholder="Votre nom et prénom"
-                    />
-                  </FormControl>
-
-                  <FormControl isRequired>
-                    <FormLabel>
-                      <Icon as={FiMail} mr={2} />
-                      Email
-                    </FormLabel>
-                    <Input
-                      type="email"
-                      value={formData.participantEmail}
-                      onChange={(e) => setFormData(prev => ({ ...prev, participantEmail: e.target.value }))}
-                      placeholder="votre@email.com"
-                    />
-                  </FormControl>
-                </SimpleGrid>
-
-                {/* Sélection des billets */}
-                <Box w="100%">
-                  <Heading size="sm" mb={4}>🎫 Nombre de billets</Heading>
-                  
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                    {(event.adultPrice !== null && event.adultPrice !== undefined) || eventInfo.isFree ? (
-                      <FormControl>
-                        <FormLabel>
-                          Adultes 
-                          {eventInfo.isFree ? (
-                            <Badge ml={2} colorScheme="green">Gratuit</Badge>
-                          ) : (
-                            <Badge ml={2} colorScheme="blue">{event.adultPrice}€</Badge>
-                          )}
-                        </FormLabel>
-                        <NumberInput
-                          value={formData.adultTickets}
-                          onChange={(value) => setFormData(prev => ({ ...prev, adultTickets: parseInt(value) || 0 }))}
-                          min={0}
-                          max={10}
-                        >
-                          <NumberInputField />
-                          <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                          </NumberInputStepper>
-                        </NumberInput>
-                      </FormControl>
-                    ) : null}
-
-                    {(event.childPrice !== null && event.childPrice !== undefined) || eventInfo.isFree ? (
-                      <FormControl>
-                        <FormLabel>
-                          Enfants (-12 ans)
-                          {eventInfo.isFree ? (
-                            <Badge ml={2} colorScheme="green">Gratuit</Badge>
-                          ) : (
-                            <Badge ml={2} colorScheme="blue">{event.childPrice}€</Badge>
-                          )}
-                        </FormLabel>
-                        <NumberInput
-                          value={formData.childTickets}
-                          onChange={(value) => setFormData(prev => ({ ...prev, childTickets: parseInt(value) || 0 }))}
-                          min={0}
-                          max={10}
-                        >
-                          <NumberInputField />
-                          <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                          </NumberInputStepper>
-                        </NumberInput>
-                      </FormControl>
-                    ) : null}
-                  </SimpleGrid>
-                </Box>
-
-                {/* Total */}
-                <Box w="100%" p={4} bg="gray.50" borderRadius="md">
-                  <HStack justify="space-between">
-                    <Text fontWeight="bold">Total :</Text>
-                    <Text fontSize="xl" fontWeight="bold" color="var(--rbe-red)">
-                      {eventInfo.isFree ? 'Gratuit' : `${calculateTotal()}€`}
-                    </Text>
-                  </HStack>
-                  <Text fontSize="sm" color="gray.600" mt={1}>
-                    {formData.adultTickets} adulte(s) + {formData.childTickets} enfant(s)
-                  </Text>
-                </Box>
-
-                {/* Bouton d'inscription */}
-                <Button
-                  size="lg"
-                  colorScheme="red"
-                  bg="var(--rbe-red)"
-                  _hover={{ bg: "var(--rbe-accent)" }}
-                  onClick={handleSubmitRegistration}
-                  isLoading={submitting}
-                  loadingText="Inscription en cours..."
-                  w="100%"
-                  leftIcon={eventInfo.registrationMethod === 'helloasso' ? <FiExternalLink /> : <FiUsers />}
-                >
-                  {eventInfo.registrationMethod === 'helloasso' 
-                    ? 'S\'inscrire via HelloAsso' 
-                    : eventInfo.isFree 
-                      ? 'Confirmer ma participation' 
-                      : 'S\'inscrire et payer'
-                  }
-                </Button>
-
-                {eventInfo.registrationMethod === 'helloasso' && (
-                  <Alert status="info" borderRadius="md">
-                    <AlertIcon />
-                    <Text fontSize="sm">
-                      Vous serez redirigé vers HelloAsso pour finaliser votre inscription et le paiement sécurisé.
-                    </Text>
-                  </Alert>
-                )}
-              </VStack>
-            </Box>
-          </>
+    {/* ÉTAPE: formulaire */}
+    {registrationStep === 'form' && (
+      <>
+        {/* Description */}
+        {event.description && (
+          <Box mb={8} p={6} borderWidth="1px" borderRadius="lg" bg="gray.50">
+            <Heading size="md" mb={4} color="var(--rbe-red)">
+              📝 Description
+            </Heading>
+            <Text lineHeight="1.7" color="gray.700">
+              {event.description}
+            </Text>
+          </Box>
         )}
 
-        {registrationStep === 'processing' && (
-          <VStack spacing={6} p={8} borderWidth="1px" borderRadius="lg" bg="blue.50">
-            <Spinner size="xl" color="var(--rbe-red)" />
-            <Heading size="lg" color="blue.700">
-              {eventInfo.registrationMethod === 'helloasso' 
-                ? 'En attente du paiement HelloAsso...'
-                : 'Traitement de votre inscription...'
-              }
-            </Heading>
-            <Text textAlign="center" color="blue.600">
-              {eventInfo.registrationMethod === 'helloasso' 
-                ? 'Finalisez votre paiement sur HelloAsso. Votre billet sera automatiquement généré et envoyé par email une fois le paiement validé.'
-                : 'Nous générons votre billet électronique...'
-              }
+        {/* Formulaire d'inscription */}
+        <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" mb={6}>
+          <Heading size="md" mb={6} color="var(--rbe-red)">
+            <Icon as={FiUsers} mr={2} />
+            Inscription
+          </Heading>
+
+          <VStack spacing={6}>
+            {/* Infos perso */}
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w="100%">
+              <FormControl isRequired>
+                <FormLabel>
+                  <Icon as={FiUser} mr={2} />
+                  Nom complet
+                </FormLabel>
+                <Input
+                  value={formData.participantName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, participantName: e.target.value }))
+                  }
+                  placeholder="Votre nom et prénom"
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>
+                  <Icon as={FiMail} mr={2} />
+                  Email
+                </FormLabel>
+                <Input
+                  type="email"
+                  value={formData.participantEmail}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, participantEmail: e.target.value }))
+                  }
+                  placeholder="votre@email.com"
+                />
+              </FormControl>
+            </SimpleGrid>
+
+            {/* Sélection des billets */}
+            <Box w="100%">
+              <Heading size="sm" mb={4}>🎫 Nombre de billets</Heading>
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                {(event.adultPrice !== null && event.adultPrice !== undefined) || eventInfo.isFree ? (
+                  <FormControl>
+                    <FormLabel>
+                      Adultes{" "}
+                      {eventInfo.isFree ? (
+                        <Badge ml={2} colorScheme="green">Gratuit</Badge>
+                      ) : (
+                        <Badge ml={2} colorScheme="blue">{event.adultPrice}€</Badge>
+                      )}
+                    </FormLabel>
+                    <NumberInput
+                      value={formData.adultTickets}
+                      onChange={(valStr) =>
+                        setFormData((prev) => ({ ...prev, adultTickets: parseInt(valStr) || 0 }))
+                      }
+                      min={0}
+                      max={10}
+                    >
+                      <NumberInputField />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                      </NumberInputStepper>
+                    </NumberInput>
+                  </FormControl>
+                ) : null}
+
+                {(event.childPrice !== null && event.childPrice !== undefined) || eventInfo.isFree ? (
+                  <FormControl>
+                    <FormLabel>
+                      Enfants (-12 ans){" "}
+                      {eventInfo.isFree ? (
+                        <Badge ml={2} colorScheme="green">Gratuit</Badge>
+                      ) : (
+                        <Badge ml={2} colorScheme="blue">{event.childPrice}€</Badge>
+                      )}
+                    </FormLabel>
+                    <NumberInput
+                      value={formData.childTickets}
+                      onChange={(valStr) =>
+                        setFormData((prev) => ({ ...prev, childTickets: parseInt(valStr) || 0 }))
+                      }
+                      min={0}
+                      max={10}
+                    >
+                      <NumberInputField />
+                      <NumberInputStepper>
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
+                      </NumberInputStepper>
+                    </NumberInput>
+                  </FormControl>
+                ) : null}
+              </SimpleGrid>
+            </Box>
+
+            {/* Total */}
+            <Box w="100%" p={4} bg="gray.50" borderRadius="md">
+              <HStack justify="space-between">
+                <Text fontWeight="bold">Total :</Text>
+                <Text fontSize="xl" fontWeight="bold" color="var(--rbe-red)">
+                  {eventInfo.isFree ? 'Gratuit' : `${calculateTotal()}€`}
+                </Text>
+              </HStack>
+              <Text fontSize="sm" color="gray.600" mt={1}>
+                {formData.adultTickets} adulte(s) + {formData.childTickets} enfant(s)
+              </Text>
+            </Box>
+
+            {/* Bouton d'inscription */}
+            <Button
+              size="lg"
+              colorScheme="red"
+              bg="var(--rbe-red)"
+              _hover={{ bg: "var(--rbe-accent)" }}
+              onClick={handleSubmitRegistration}
+              isLoading={submitting}
+              loadingText="Inscription en cours..."
+              w="100%"
+              leftIcon={eventInfo.registrationMethod === 'helloasso' ? <FiExternalLink /> : <FiUsers />}
+            >
+              {eventInfo.registrationMethod === 'helloasso'
+                ? "S'inscrire via HelloAsso"
+                : eventInfo.isFree
+                  ? 'Confirmer ma participation'
+                  : "S'inscrire et payer"}
+            </Button>
+
+            {eventInfo.registrationMethod === 'helloasso' && (
+              <Alert status="info" borderRadius="md">
+                <AlertIcon />
+                <Text fontSize="sm">
+                  Vous serez redirigé vers HelloAsso pour finaliser votre inscription et le paiement sécurisé.
+                </Text>
+              </Alert>
+            )}
+          </VStack>
+        </Box>
+      </>
+    )}
+
+    {/* ÉTAPE: processing */}
+    {registrationStep === 'processing' && (
+      <VStack spacing={6} p={8} borderWidth="1px" borderRadius="lg" bg="blue.50">
+        <Spinner size="xl" color="var(--rbe-red)" />
+        <Heading size="lg" color="blue.700">
+          {eventInfo.registrationMethod === 'helloasso'
+            ? 'En attente du paiement HelloAsso...'
+            : 'Traitement de votre inscription...'}
+        </Heading>
+        <Text textAlign="center" color="blue.600">
+          {eventInfo.registrationMethod === 'helloasso'
+            ? 'Finalisez votre paiement sur HelloAsso. Votre billet sera automatiquement généré et envoyé par email une fois le paiement validé.'
+            : 'Nous générons votre billet électronique...'}
+        </Text>
+      </VStack>
+    )}
+
+    {/* ÉTAPE: success */}
+    {registrationStep === 'success' && ticketData && (
+      <VStack spacing={6} p={8} borderWidth="1px" borderRadius="lg" boxShadow="xl" bg="green.50">
+        <Heading size="lg" color="green.700">✅ Inscription confirmée !</Heading>
+
+        <Box p={4} bg="white" borderRadius="md" w="100%" border="1px solid" borderColor="green.200">
+          <Text fontWeight="600" mb={2}>Détails de votre inscription</Text>
+          <Text fontSize="sm">N° de réservation : {ticketData.id}</Text>
+          <Text fontSize="sm">Événement : {event.title}</Text>
+          <Text fontSize="sm">Date : {event.date} {event.time && `• ${event.time}`}</Text>
+          <Text fontSize="sm">Lieu : {event.location}</Text>
+          <Text fontSize="sm">Billets : {formData.adultTickets} adulte(s) + {formData.childTickets} enfant(s)</Text>
+          {!eventInfo.isFree && (
+            <Text fontSize="sm">Montant : {calculateTotal()}€</Text>
+          )}
+        </Box>
+
+        <Divider />
+
+        <Text fontWeight="600">🎫 Votre billet électronique</Text>
+        {ticketData.qrCode && (
+          <Image
+            src={generateQRCodeUrl(ticketData.qrCode)}
+            alt="QR Code de votre billet"
+            boxSize="256px"
+            border="2px solid"
+            borderColor="var(--rbe-red)"
+            borderRadius="md"
+          />
+        )}
+
+        <Alert status="success" borderRadius="md">
+          <AlertIcon />
+          <VStack align="start" spacing={1}>
+            <Text fontWeight="bold">📧 Billet envoyé par email</Text>
+            <Text fontSize="sm">
+              Un email de confirmation avec votre billet électronique a été envoyé à : {formData.participantEmail}
+            </Text>
+            <Text fontSize="xs" color="green.600" mt={2}>
+              Présentez ce QR Code à l'entrée de l'événement.
             </Text>
           </VStack>
-        )}
-
-        {registrationStep === 'success' && ticketData && (
-          <VStack spacing={6} p={8} borderWidth="1px" borderRadius="lg" boxShadow="xl" bg="green.50">
-            <Heading size="lg" color="green.700">✅ Inscription confirmée !</Heading>
-
-            <Box p={4} bg="white" borderRadius="md" w="100%" border="1px solid" borderColor="green.200">
-              <Text fontWeight="600" mb={2}>Détails de votre inscription</Text>
-              <Text fontSize="sm">N° de réservation : {ticketData.id}</Text>
-              <Text fontSize="sm">Événement : {event.title}</Text>
-              <Text fontSize="sm">Date : {event.date} {event.time && `• ${event.time}`}</Text>
-              <Text fontSize="sm">Lieu : {event.location}</Text>
-              <Text fontSize="sm">Billets : {formData.adultTickets} adulte(s) + {formData.childTickets} enfant(s)</Text>
-              {!eventInfo.isFree && (
-                <Text fontSize="sm">Montant : {calculateTotal()}€</Text>
-              )}
-            </Box>
-
-            <Divider />
-
-            <Text fontWeight="600">🎫 Votre billet électronique</Text>
-            {ticketData.qrCode && (
-              <Image
-                src={generateQRCodeUrl(ticketData.qrCode)}
-                alt="QR Code de votre billet"
-                boxSize="256px"
-                border="2px solid"
-                borderColor="var(--rbe-red)"
-                borderRadius="md"
-              />
-            )}
-
-            <Alert status="success" borderRadius="md">
-              <AlertIcon />
-              <VStack align="start" spacing={1}>
-                <Text fontWeight="bold">📧 Billet envoyé par email</Text>
-                <Text fontSize="sm">
-                  Un email de confirmation avec votre billet électronique a été envoyé à : {formData.participantEmail}
-                </Text>
-                <Text fontSize="xs" color="green.600" mt={2}>
-                  Présentez ce QR Code à l'entrée de l'événement.
-                </Text>
-              </VStack>
-            </Alert>
-          </VStack>
-      </Container>
-    </>/Container>
-  );</>
-} );
-}
+        </Alert>
+      </VStack>
+    )}
+  </Container>
+)}
