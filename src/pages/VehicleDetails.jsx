@@ -156,7 +156,7 @@ export default function VehicleDetails() {
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"
       marginLeft="calc(-50vw + 50%)"
       marginRight="calc(-50vw + 50%)"
-      backgroundImage={`url('${backgroundImage}')`}
+      backgroundImage={`url(${backgroundImage})`}
       backgroundSize="cover"
       backgroundPosition={backgroundPosition}
       backgroundRepeat="no-repeat"
