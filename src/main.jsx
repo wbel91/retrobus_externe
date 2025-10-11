@@ -16,6 +16,7 @@ import RetroMerch from "./pages/RetroMerch.jsx";
 import Contact from "./pages/Contact.jsx";
 import Events from "./pages/Events.jsx";
 import EventRegistration from "./pages/EventRegistration.jsx";
+import Changelog from "./pages/Changelog.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/" element={<Home />} />
               <Route path="/parc" element={<Vehicles />} />
               <Route path="/vehicles/:id" element={<VehicleDetails />} />
+              <Route path="/changelog" element={<Changelog />} />
               <Route path="/retromerch" element={<RetroMerch />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/evenements" element={<Events />} />

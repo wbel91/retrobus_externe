@@ -31,6 +31,14 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
+// Petite icône "mise à jour" (style rouge similaire)
+const UpdateIcon = ({ size = 26 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="var(--rbe-red)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 6V3L8 7l4 4V8c2.8 0 5 2.2 5 5 0 .8-.2 1.6-.6 2.3l1.5 1.1C19.9 14.6 20.4 13.4 20.4 12 20.4 7.6 16.9 4 12 4z"/>
+    <path d="M6.6 6.6L5.1 5.5C4.1 6.9 3.6 8.4 3.6 10c0 4.4 3.5 8 8.4 8v3l4-4-4-4v3c-2.8 0-5-2.2-5-5 0-.8.2-1.6.6-2.3z" opacity="0.95"/>
+  </svg>
+);
+
 export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNewsletterClick }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { 
@@ -69,7 +77,6 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
       }
       
       const json = await res.json();
-      
       if (json.duplicated) {
         toast({
           status: "info",
@@ -127,6 +134,33 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
   if (!isMobile) {
     return (
       <nav className="site-nav" aria-label="Navigation principale" style={{ position: 'relative' }}>
+        {/* Icône Changelog tout à gauche (hors flux) */}
+        <HStack
+          spacing={2}
+          position="absolute"
+          left="12px"
+          top="50%"
+          transform="translateY(-50%)"
+          pl={{ base: 2, lg: 4 }}
+        >
+          <Tooltip label="Voir les modifications" hasArrow placement="bottom">
+            <Box
+              as={Link}
+              to="/changelog"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              transition="all .25s"
+              _hover={{ transform: "scale(1.15)" }}
+              _active={{ transform: "scale(1.05)" }}
+              aria-label="Changelog"
+              style={{ textDecoration: 'none' }}
+            >
+              <UpdateIcon />
+            </Box>
+          </Tooltip>
+        </HStack>
+
         {/* Contenu navigation centré */}
         <Box
             className="site-nav__inner"
@@ -222,7 +256,10 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader bg="var(--rbe-red)" color="white">
+          <DrawerHeader bg="var(--rbe-red)" color="white" display="flex" alignItems="center" gap={3}>
+            <Box as={Link} to="/changelog" aria-label="Changelog" onClick={onClose} style={{ textDecoration: 'none' }}>
+              <UpdateIcon size={22} />
+            </Box>
             Association RétroBus Essonne
           </DrawerHeader>
           <DrawerBody p={0}>
@@ -277,7 +314,7 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
         </DrawerContent>
       </Drawer>
 
-      {/* Newsletter Modal */}
+      {/* Newsletter Modal (inchangé) */}
       <Modal isOpen={isNewsletterOpen} onClose={onNewsletterClose} isCentered>
         <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(4px)" />
         <ModalContent 
