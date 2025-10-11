@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import vehicleImage1 from "../assets/920_pres.jpg";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://attractive-kindness-rbe-serveurs.up.railway.app';
 
 // Images par défaut pour les véhicules
 const defaultImages = {

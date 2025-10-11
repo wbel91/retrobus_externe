@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { FiRefreshCw, FiTrash2, FiMail, FiPlus } from "react-icons/fi";
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API = import.meta.env.VITE_API_URL || 'https://attractive-kindness-rbe-serveurs.up.railway.app';
 
 export default function Newsletter() {
   const [subscribers, setSubscribers] = useState([]);

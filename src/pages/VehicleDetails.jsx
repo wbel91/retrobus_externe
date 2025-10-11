@@ -25,7 +25,7 @@ import {
 import { FiChevronLeft, FiChevronRight, FiArrowLeft } from "react-icons/fi";
 import EventBanner from "../components/EventBanner";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://attractive-kindness-rbe-serveurs.up.railway.app';
 
 function resolve(src) {
   if (!src) return src;
