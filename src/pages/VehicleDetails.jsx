@@ -38,6 +38,13 @@ function resolve(src) {
   return API_BASE_URL + '/' + src;
 }
 
+function toText(v) {
+  if (v == null) return '';
+  if (Array.isArray(v)) return v.map(toText).join(', ');
+  if (typeof v === 'object') return Object.values(v).map(toText).join(', ');
+  return String(v);
+}
+
 export default function VehicleDetails() {
   const { id } = useParams();
   const [vehicle, setVehicle] = useState(null);
@@ -308,10 +315,10 @@ export default function VehicleDetails() {
                 {Array.isArray(vehicle.caracteristiques) && vehicle.caracteristiques.map((carac, index) => (
                   <Flex key={index} justify="space-between" py={2} bg="blackAlpha.300" px={4} borderRadius="md">
                     <Text fontWeight="medium" color="white" textShadow="1px 1px 2px rgba(0,0,0,0.8)" fontSize="sm">
-                      {carac.label}
+                      {toText(carac.label)}
                     </Text>
                     <Text color="white" fontWeight="semibold" textShadow="1px 1px 2px rgba(0,0,0,0.8)" fontSize="sm">
-                      {carac.value}
+                      {toText(carac.value)}
                     </Text>
                   </Flex>
                 ))}
