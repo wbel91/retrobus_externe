@@ -44,7 +44,7 @@ export default function App() {
 
           {/* Other pages */}
           <Route path="/retromerch" element={<RetroMerch />} />
-          {/* <Route path="/omsi2" element={<OmsiAddon />} /> */} {/* ← temporairement désactivé */}
+          {/* <Route path="/omsi2" element={<OmsiAddon />} /> */}
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />
