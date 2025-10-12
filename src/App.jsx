@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header.jsx";
+import Footer from "./components/Footer.jsx"; // ← ajouter ceci
 import "./styles.css";
 
 // Pages
@@ -62,6 +63,7 @@ export default function App() {
           />
         </Routes>
       </main>
+      <Footer /> {/* ← footer rétabli */}
     </Router>
   );
 }
