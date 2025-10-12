@@ -29,13 +29,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://attractive-kindnes
 
 function resolve(src) {
   if (!src) return src;
-  // Si c'est déjà une data URL (base64), la retourner telle quelle
+  // Data URL (base64) → tel quel
   if (src.startsWith('data:')) return src;
-  // Si c'est une URL complète, la retourner telle quelle
+  // URL absolue http(s) → tel quel
   if (src.startsWith('http')) return src;
-  // Sinon, construire l'URL avec l'API_BASE_URL
-  if (src.startsWith('/')) return API_BASE_URL + src;
-  return API_BASE_URL + '/' + src;
+  // Chemins root du site (ex: /assets/...) → laisser tel quel pour pointer sur le domaine du site
+  if (src.startsWith('/')) return src;
+  // Sinon, considérer que c’est un chemin API relatif
+  return `${API_BASE_URL}/${src}`;
 }
 
 function toText(v) {
@@ -63,22 +64,12 @@ export default function VehicleDetails() {
     setLoading(true);
     
     // Récupérer les données du véhicule
-    const fetchVehicle = fetch(`${API_BASE_URL}/public/vehicles/${id}`)
-      .then(r => {
-        if (!r.ok) throw new Error('Vehicle not found');
-        return r.json();
-      });
-    
-    // Récupérer les événements associés au véhicule
-    const fetchEvents = fetch(`${API_BASE_URL}/public/vehicles/${id}/events`)
-      .then(r => {
-        if (!r.ok) return [];
-        return r.json();
-      })
-      .then(data => {
-        // Trier les événements par date décroissante (plus récent en premier)
-        return data.sort((a, b) => new Date(b.date) - new Date(a.date));
-      })
+    const fetchVehicle = fetch(`${API_BASE_URL}/public/vehicles/${id}`, { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('Vehicle not found'); return r.json(); });
+
+    const fetchEvents = fetch(`${API_BASE_URL}/public/vehicles/${id}/events`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => data.sort((a,b) => new Date(b.date) - new Date(a.date)))
       .catch(() => []);
 
     Promise.all([fetchVehicle, fetchEvents])
@@ -145,15 +136,8 @@ export default function VehicleDetails() {
   const backgroundImage = resolve(vehicle.backgroundImage || gallery[0]);
   const backgroundPosition = vehicle.backgroundPosition || 'center';
 
-  const nextImage = () => {
-    if (galleryImages.length === 0) return;
-    setSelectedImage(i => (i + 1) % galleryImages.length);
-  };
-
-  const prevImage = () => {
-    if (galleryImages.length === 0) return;
-    setSelectedImage(i => (i - 1 + galleryImages.length) % galleryImages.length);
-  };
+  // Optionnel: log de debug rapide
+  // console.debug('Vehicle bg:', { backgroundImage, backgroundPosition, id });
 
   return (
     <Box
@@ -163,30 +147,26 @@ export default function VehicleDetails() {
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"
       marginLeft="calc(-50vw + 50%)"
       marginRight="calc(-50vw + 50%)"
-      backgroundImage={`url(${backgroundImage})`}
+      // Important: guillemets autour de l’URL pour data: et caractères spéciaux
+      backgroundImage={`url("${backgroundImage}")`}
       backgroundSize="cover"
       backgroundPosition={backgroundPosition}
       backgroundRepeat="no-repeat"
       overflow="hidden"
     >
-      {/* Overlay sombre pour améliorer la lisibilité */}
-      <Box
-        position="absolute"
-        inset={0}
-        bg="blackAlpha.600"
-        zIndex={1}
-      />
+      {/* Overlay sombre */ }
+      <Box position="absolute" inset={0} bg="blackAlpha.600" zIndex={1} />
 
-      {/* Contenu */}
+      {/* Contenu */ }
       <Box position="relative" zIndex={2} py={8}>
         <Container maxW="7xl">
           {/* Navigation */}
-          <Button 
-            as={Link} 
-            to="/vehicles" 
-            leftIcon={<FiArrowLeft />} 
-            mb={6} 
-            colorScheme="whiteAlpha" 
+          <Button
+            as={Link}
+            to="/parc"             // ← corrige /vehicles → /parc
+            leftIcon={<FiArrowLeft />}
+            mb={6}
+            colorScheme="whiteAlpha"
             variant="solid"
             bg="whiteAlpha.200"
             _hover={{ bg: "whiteAlpha.300" }}
@@ -355,7 +335,7 @@ export default function VehicleDetails() {
             )}
           </SimpleGrid>
 
-          {/* Modal pour affichage plein écran */}
+          {/* Modal plein écran */}
           <Modal isOpen={isOpen} onClose={onClose} size="6xl">
             <ModalOverlay bg="blackAlpha.800" />
             <ModalContent bg="transparent" shadow="none">
@@ -374,7 +354,8 @@ export default function VehicleDetails() {
               </ModalBody>
             </ModalContent>
           </Modal>
-        </Container>
+
+        </Container>  {/* ← ajoutez cette fermeture manquante */}
       </Box>
     </Box>
   );
