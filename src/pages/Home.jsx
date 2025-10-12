@@ -1,4 +1,5 @@
 ﻿import { Helmet } from "react-helmet-async";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Box, Button, Container, Heading, SimpleGrid, Stack, Text, Image, VStack
 } from "@chakra-ui/react";
@@ -119,22 +120,23 @@ export default function Home() {
                 mt={6} 
                 alignItems="flex-end"
               >
-                <Button 
-                  as="a" 
-                  href="/parc" 
-                  size="lg" 
+                <Button
+                  as={RouterLink}
+                  to="/parc"
+                  size="lg"
                   bg="var(--rbe-red)"
                   color="white"
                   _hover={{ opacity: 0.9 }}
                 >
                   Découvrir nos véhicules
                 </Button>
-                <Button 
-                  as="a" 
-                  href="/contact"
-                  size="lg" 
-                  variant="outline" 
-                  color="white" 
+
+                <Button
+                  as={RouterLink}
+                  to="/contact"
+                  size="lg"
+                  variant="outline"
+                  color="white"
                   _hover={{ bg: "whiteAlpha.200" }}
                 >
                   Nous contacter

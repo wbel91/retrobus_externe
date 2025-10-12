@@ -1,19 +1,21 @@
 ﻿import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header.jsx";
 import "./styles.css";
 
-// Import des pages
+// Pages
 import Home from "./pages/Home.jsx";
 import Vehicles from "./pages/Vehicles.jsx";
 import VehicleDetails from "./pages/VehicleDetails.jsx";
-import Events from "./pages/Events";
-import EventRegistration from "./pages/EventRegistration";
+import Events from "./pages/Events.jsx";
+import EventRegistration from "./pages/EventRegistration.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import Photos from "./pages/Photos.jsx";
 import Donate from "./pages/Donate.jsx";
-import Newsletter from "./pages/Newsletter"; // ← already present
+import RetroMerch from "./pages/RetroMerch.jsx";
+import Changelog from "./pages/Changelog.jsx";
+import Newsletter from "./pages/Newsletter";
 
 export default function App() {
   return (
@@ -21,24 +23,32 @@ export default function App() {
       <Header />
       <main>
         <Routes>
+          {/* Home */}
           <Route path="/" element={<Home />} />
-          <Route path="/vehicles" element={<Vehicles />} />
+
+          {/* Parc / Vehicles */}
+          <Route path="/parc" element={<Vehicles />} />
           <Route path="/vehicles/:id" element={<VehicleDetails />} />
-          <Route path="/events" element={<Events />} />
-          <Route
-            path="/event-registration"
-            element={<div>DEBUG EVENT REGISTRATION</div>}
-          />
+          {/* Alias: old English paths redirect to FR */}
+          <Route path="/vehicles" element={<Navigate to="/parc" replace />} />
+
+          {/* Events */}
+          <Route path="/evenements" element={<Events />} />
+          <Route path="/evenement/:eventId/inscription" element={<EventRegistration />} />
+          {/* Alias: English to FR */}
+          <Route path="/events" element={<Navigate to="/evenements" replace />} />
+          <Route path="/event-registration" element={<Navigate to="/evenements" replace />} />
+
+          {/* Other pages */}
+          <Route path="/retromerch" element={<RetroMerch />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/donate" element={<Donate />} />
-
-          {/* Before: used <ProtectedRoute> which isn't defined in this app */}
-          {/* After: expose the newsletter page directly (or delete this route if not needed) */}
+          <Route path="/changelog" element={<Changelog />} />
           <Route path="/newsletter" element={<Newsletter />} />
 
-          {/* Route de debug */}
+          {/* 404 */}
           <Route
             path="*"
             element={
