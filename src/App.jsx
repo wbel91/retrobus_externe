@@ -13,7 +13,7 @@ import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import Photos from "./pages/Photos.jsx";
 import Donate from "./pages/Donate.jsx";
-import Newsletter from "./pages/Newsletter"; // ← nouveau
+import Newsletter from "./pages/Newsletter"; // ← already present
 
 export default function App() {
   return (
@@ -33,10 +33,11 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/donate" element={<Donate />} />
-          <Route
-            path="/dashboard/newsletter"
-            element={<ProtectedRoute><Newsletter /></ProtectedRoute>}
-          />
+
+          {/* Before: used <ProtectedRoute> which isn't defined in this app */}
+          {/* After: expose the newsletter page directly (or delete this route if not needed) */}
+          <Route path="/newsletter" element={<Newsletter />} />
+
           {/* Route de debug */}
           <Route
             path="*"

@@ -1,23 +1,9 @@
 ﻿import "../styles.css";
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Box,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  useDisclosure,
-  VStack,
-  Text,
-  Heading,
-  Button,
-  Input,
-  FormControl,
-  FormLabel,
-  HStack
+  Box, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody,
+  useDisclosure, VStack, Text, Heading, Button, Input, FormControl, FormLabel, HStack, Image
 } from "@chakra-ui/react";
 import bg from "../assets/_MG_0969.jpg";
 import logoDefault from "../assets/RétroBouh2025.svg";
@@ -40,6 +26,9 @@ const EnvelopeIcon = ({ size = 28 }) => (
 
 export default function Header() {
   const { pathname } = useLocation();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modal don
   const {
@@ -55,14 +44,35 @@ export default function Header() {
     onClose: onNewsClose
   } = useDisclosure();
 
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterStatus, setNewsletterStatus] = useState(null); // 'ok' | 'error' | null
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'https://attractive-kindness-rbe-serveurs.up.railway.app';
+
+  // Fetch public site-config for dynamic header/logo
+  const [cfg, setCfg] = useState(null);
+  useEffect(() => {
+    let stop = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API_URL}/public/site-config`, { cache: 'no-store' });
+        const j = r.ok ? await r.json() : null;
+        if (!stop) setCfg(j);
+      } catch {
+        if (!stop) setCfg(null);
+      }
+    })();
+    return () => { stop = true; };
+  }, [API_URL]);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const headerImg = isMobile
+    ? (cfg?.headerImageMobile || cfg?.headerImageDesktop || bg)
+    : (cfg?.headerImageDesktop || cfg?.headerImageMobile || bg);
+  const headerPos = isMobile
+    ? (cfg?.headerPositionMobile || 'center')
+    : (cfg?.headerPositionDesktop || 'center');
 
   let logo = logoDefault;
-  if (pathname.startsWith("/retromerch")) logo = logoDefault;
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+  if (cfg?.logoMain) logo = cfg.logoMain;
+  if (pathname.startsWith("/retromerch")) logo = logoDefault; // keep brand override if needed
 
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
@@ -72,29 +82,18 @@ export default function Header() {
     }
     setIsSubmitting(true);
     setNewsletterStatus(null);
-    
     try {
-      console.log("📬 Newsletter subscription:", newsletterEmail);
-      
       const res = await fetch(`${API_URL}/newsletter/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newsletterEmail.trim() })
       });
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      
-      const json = await res.json();
-      console.log("✅ Newsletter subscription successful:", json);
-      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json();
       setNewsletterStatus("ok");
       setNewsletterEmail("");
       setTimeout(() => setNewsletterStatus(null), 3000);
-      
     } catch (e) {
-      console.error("❌ Newsletter subscription failed:", e);
       setNewsletterStatus("error");
       setTimeout(() => setNewsletterStatus(null), 4000);
     } finally {
@@ -107,7 +106,10 @@ export default function Header() {
       <header className="site-header">
         <div
           className="header-bg"
-          style={{ backgroundImage: `url(${bg})` }}
+          style={{
+            backgroundImage: `url("${headerImg}")`,
+            backgroundPosition: headerPos
+          }}
           aria-hidden="true"
         />
         <div className="header-inner">

@@ -133,16 +133,12 @@ export default function VehicleDetails() {
   // Images du carrousel
   const galleryImages = hasExplicitBg ? resolvedGallery : resolvedGallery.slice(1);
 
-  // Handlers de navigation (ajout)
-  const nextImage = () => {
-    if (galleryImages.length === 0) return;
-    setSelectedImage(i => (i + 1) % galleryImages.length);
-  };
+  const fullTitle = vehicle.marque ? `${vehicle.marque} ${vehicle.modele}` : vehicle.modele;
 
-  const prevImage = () => {
-    if (galleryImages.length === 0) return;
-    setSelectedImage(i => (i - 1 + galleryImages.length) % galleryImages.length);
-  };
+  // 1) Renommer la variable pour éviter tout conflit et clarifier
+  const regYear = vehicle.miseEnCirculation
+    ? new Date(vehicle.miseEnCirculation).getFullYear()
+    : null;
 
   return (
     <Box
@@ -186,9 +182,10 @@ export default function VehicleDetails() {
           {/* En-tête directement sur l'image de fond */}
           <VStack align="start" spacing={4} mb={6}>
             <HStack>
-              {miseEnCirc && (
+              {/* 2) Utiliser regYear au lieu de miseEnCirc */}
+              {regYear && (
                 <Badge colorScheme="blue" fontSize="md" px={3} py={1} bg="blue.500" color="white">
-                  {miseEnCirc}
+                  {regYear}
                 </Badge>
               )}
               {vehicle.immat && (

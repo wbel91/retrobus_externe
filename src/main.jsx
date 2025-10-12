@@ -27,7 +27,7 @@ function Boot() {
     let stop = false;
     (async () => {
       try {
-        const r = await fetch(`${API_BASE_URL}/public/site-config`);
+        const r = await fetch(`${API_BASE_URL}/public/site-config`, { cache: 'no-store' });
         const j = r.ok ? await r.json() : { maintenanceEnabled:false };
         if (!stop) setCfg(j);
       } catch {
@@ -60,27 +60,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
       <ChakraProvider value={system}>
-        <BrowserRouter>
-          {/* Header includes the Navbar (ex: Header renders <Navbar />) */}
-          <Header />
-
-          {/* Main content area (site-wide container) */}
-          <main className="site-main">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/parc" element={<Vehicles />} />
-              <Route path="/vehicles/:id" element={<VehicleDetails />} />
-              <Route path="/changelog" element={<Changelog />} />
-              <Route path="/retromerch" element={<RetroMerch />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/evenements" element={<Events />} />
-              <Route path="/evenement/:eventId/inscription" element={<EventRegistration />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-
-          <Footer />
-        </BrowserRouter>
+        <Boot />
       </ChakraProvider>
     </HelmetProvider>
   </React.StrictMode>

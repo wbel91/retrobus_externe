@@ -270,12 +270,12 @@ a:hover {
 
 /* --- Ajustement page d'accueil : coller le hero sous la navbar sans bande blanche --- */
 .home-landing .hero.full-bleed {
-  margin-top: calc(-1 * var(--nav-h)); /* remonte juste ce qu'occupe la nav */
+  margin-top: 0; /* was: calc(-1 * var(--nav-h)) which pushed the hero under the fixed nav */
 }
 
-/* --- Ajustement page détail véhicule : coller le hero sous la navbar --- */
+/* Detail page likely using the same trick; keep it aligned below nav as well */
 .vehicle-detail-landing {
-  margin-top: calc(-1 * var(--nav-h)); /* remonte le hero de la hauteur de la nav */
+  margin-top: 0; /* was: calc(-1 * var(--nav-h)) */
 }
 
 /* Optionnel (si un fin trait persiste à cause d'un border-collapse / sous-pixel) */
