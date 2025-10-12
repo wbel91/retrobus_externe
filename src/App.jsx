@@ -21,7 +21,8 @@ export default function App() {
   return (
     <Router>
       <Header />
-      <main>
+      {/* Add the layout class so content starts below fixed header+nav */}
+      <main className="site-main">
         <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />
