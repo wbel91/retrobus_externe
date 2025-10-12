@@ -121,20 +121,17 @@ export default function VehicleDetails() {
   }
 
   // Normaliser les données du véhicule
-  const gallery = Array.isArray(vehicle.gallery) && vehicle.gallery.length > 0
+  const resolvedGallery = Array.isArray(vehicle.gallery) && vehicle.gallery.length > 0
     ? vehicle.gallery.map(resolve)
     : [resolve('/assets/photos/920_back.jpg')];
 
-  // Images de la galerie (sans la première qui sert de fond)
-  const galleryImages = gallery.slice(1);
-  const fullTitle = vehicle.marque ? `${vehicle.marque} ${vehicle.modele}` : vehicle.modele;
-  const miseEnCirc = vehicle.miseEnCirculation
-    ? new Date(vehicle.miseEnCirculation).getFullYear()
-    : null;
-
   // Déterminer l'image de fond (backgroundImage ou première de la galerie)
-  const backgroundImage = resolve(vehicle.backgroundImage || gallery[0]);
+  const hasExplicitBg = !!vehicle.backgroundImage;
+  const backgroundImage = resolve(vehicle.backgroundImage || resolvedGallery[0]);
   const backgroundPosition = vehicle.backgroundPosition || 'center';
+
+  // Images du carrousel
+  const galleryImages = hasExplicitBg ? resolvedGallery : resolvedGallery.slice(1);
 
   // Handlers de navigation (ajout)
   const nextImage = () => {
