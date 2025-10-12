@@ -136,8 +136,16 @@ export default function VehicleDetails() {
   const backgroundImage = resolve(vehicle.backgroundImage || gallery[0]);
   const backgroundPosition = vehicle.backgroundPosition || 'center';
 
-  // Optionnel: log de debug rapide
-  // console.debug('Vehicle bg:', { backgroundImage, backgroundPosition, id });
+  // Handlers de navigation (ajout)
+  const nextImage = () => {
+    if (galleryImages.length === 0) return;
+    setSelectedImage(i => (i + 1) % galleryImages.length);
+  };
+
+  const prevImage = () => {
+    if (galleryImages.length === 0) return;
+    setSelectedImage(i => (i - 1 + galleryImages.length) % galleryImages.length);
+  };
 
   return (
     <Box
