@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Box,
   Container,
   Heading,
   Text,
-  Image,
+  Image as ChakraImage,
   SimpleGrid,
   Badge,
   Button,
@@ -27,16 +27,16 @@ import EventBanner from "../components/EventBanner";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://attractive-kindness-rbe-serveurs.up.railway.app';
 
+// Fallback global pour les fonds de véhicules
+const DEFAULT_VEHICLE_BG = '/assets/fallback/_MG_1006.jpg';
+
+// Résolution robuste (assets locaux vs uploads API)
 function resolve(src) {
   if (!src) return src;
-  // Data URL (base64) → tel quel
-  if (src.startsWith('data:')) return src;
-  // URL absolue http(s) → tel quel
-  if (src.startsWith('http')) return src;
-  // Chemins root du site (ex: /assets/...) → laisser tel quel pour pointer sur le domaine du site
-  if (src.startsWith('/')) return src;
-  // Sinon, considérer que c’est un chemin API relatif
-  return `${API_BASE_URL}/${src}`;
+  if (src.startsWith('data:') || src.startsWith('http')) return src;
+  if (src.startsWith('/assets/')) return src;              // assets du site
+  if (src.startsWith('/')) return `${API_BASE_URL}${src}`; // /uploads/... -> API
+  return `${API_BASE_URL}/${src}`;                         // relatif -> API
 }
 
 function toText(v) {
@@ -46,6 +46,21 @@ function toText(v) {
   return String(v);
 }
 
+// utilitaire: teste si une image charge bien
+function testImage(url) {
+  return new Promise((resolveOk) => {
+    if (typeof window === 'undefined' || !window.Image) {
+      // En environnement non-browser, ne bloque pas
+      resolveOk(true);
+      return;
+    }
+    const img = new window.Image();
+    img.onload = () => resolveOk(true);
+    img.onerror = () => resolveOk(false);
+    img.src = url;
+  });
+}
+
 export default function VehicleDetails() {
   const { id } = useParams();
   const [vehicle, setVehicle] = useState(null);
@@ -53,8 +68,11 @@ export default function VehicleDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [heroBg, setHeroBg] = useState(null);       // URL choisie qui charge vraiment
+  const [heroProbe, setHeroProbe] = useState(false); // terminé de sonder
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // Always run hooks before any conditional return
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -62,8 +80,7 @@ export default function VehicleDetails() {
   useEffect(() => {
     let abort = false;
     setLoading(true);
-    
-    // Récupérer les données du véhicule
+
     const fetchVehicle = fetch(`${API_BASE_URL}/public/vehicles/${id}`, { cache: 'no-store' })
       .then(r => { if (!r.ok) throw new Error('Vehicle not found'); return r.json(); });
 
@@ -82,15 +99,71 @@ export default function VehicleDetails() {
         if (!abort) setError(e.message);
       })
       .finally(() => !abort && setLoading(false));
-      
+
     return () => { abort = true; };
   }, [id]);
 
+  // Safe normalization
+  const galleryArrayTop = Array.isArray(vehicle?.gallery) ? vehicle.gallery : [];
+  const resolvedGalleryTop = galleryArrayTop.map(resolve);
+
+  // Build hero candidates (inclut le fallback à la fin)
+  const heroCandidates = useMemo(() => {
+    const candidates = Array.from(new Set([
+      resolve(vehicle?.backgroundImage || ''),
+      ...resolvedGalleryTop,
+      DEFAULT_VEHICLE_BG,
+    ].filter(Boolean)));
+    // debug éventuel...
+    return candidates;
+  }, [id, vehicle?.backgroundImage, JSON.stringify(resolvedGalleryTop)]);
+  
+  // Stable key for probe effect
+  const heroKey = useMemo(() => JSON.stringify(heroCandidates), [heroCandidates]);
+
+  // Hero probe effect
+  useEffect(() => {
+    let stop = false;
+    (async () => {
+      setHeroProbe(false);
+      if (heroCandidates.length === 0) {
+        setHeroBg(null);
+        setHeroProbe(true);
+        return;
+      }
+      for (const url of heroCandidates) {
+        const ok = await testImage(url);
+        if (stop) return;
+        if (ok) {
+          setHeroBg(url);
+          setHeroProbe(true);
+          return;
+        }
+      }
+      setHeroBg(null);
+      setHeroProbe(true);
+    })();
+    return () => { stop = true; };
+  }, [heroKey]);
+
+  // Guards loading/error/not found
   if (loading) {
     return <Center h="60vh"><Spinner size="xl" color="blue.400" /></Center>;
   }
-
-  if (error || !vehicle) {
+  
+  if (error) {
+    return (
+      <Center h="60vh">
+        <VStack spacing={4}>
+          <Heading size="md">Erreur de chargement</Heading>
+          <Text>{String(error)}</Text>
+          <Button as={Link} to="/parc" leftIcon={<FiArrowLeft />}>Retour aux véhicules</Button>
+        </VStack>
+      </Center>
+    );
+  }
+  
+  if (!vehicle) {
     return (
       <Box
         position="relative"
@@ -98,7 +171,7 @@ export default function VehicleDetails() {
         height="calc(100vh - var(--header-h) - var(--nav-h))"
         marginLeft="calc(-50vw + 50%)"
         marginRight="calc(-50vw + 50%)"
-        backgroundImage="url('/assets/photos/920_back.jpg')"
+        backgroundImage={`url("${DEFAULT_VEHICLE_BG}")`}
         backgroundSize="cover"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
@@ -108,37 +181,47 @@ export default function VehicleDetails() {
         justifyContent="center"
       >
         <Box bg="blackAlpha.700" borderRadius="lg" p={8} textAlign="center">
-          <Button as={Link} to="/vehicles" leftIcon={<FiArrowLeft />} mb={6} colorScheme="white" variant="outline">
+          <Button as={Link} to="/parc" leftIcon={<FiArrowLeft />} mb={6} colorScheme="white" variant="outline">
             Retour aux véhicules
           </Button>
-          <Heading as="h1" size="2xl" mb={6} color="white">
+          <Heading as="h1" size="2xl" mb={4} color="white">
             Véhicule non trouvé
           </Heading>
-          <Text fontSize="lg" color="white">Le véhicule demandé n'existe pas dans notre collection.</Text>
+          <Text fontSize="lg" color="white">Le véhicule demandé n'existe pas.</Text>
         </Box>
       </Box>
     );
   }
 
-  // Normaliser les données du véhicule
-  const resolvedGallery = Array.isArray(vehicle.gallery) && vehicle.gallery.length > 0
-    ? vehicle.gallery.map(resolve)
-    : [resolve('/assets/photos/920_back.jpg')];
-
-  // Déterminer l'image de fond (backgroundImage ou première de la galerie)
-  const hasExplicitBg = !!vehicle.backgroundImage;
-  const backgroundImage = resolve(vehicle.backgroundImage || resolvedGallery[0]);
+  // From here, vehicle is defined
+  const hasExplicitBg = !!(vehicle && vehicle.backgroundImage);
+  const fallbackBg = resolve(
+    vehicle.backgroundImage || resolvedGalleryTop[0] || DEFAULT_VEHICLE_BG
+  );
   const backgroundPosition = vehicle.backgroundPosition || 'center';
 
-  // Images du carrousel
-  const galleryImages = hasExplicitBg ? resolvedGallery : resolvedGallery.slice(1);
+  // AJOUT: logique simplifiée qui force l'affichage
+  const displayBg = vehicle?.backgroundImage 
+    ? resolve(vehicle.backgroundImage)
+    : resolvedGalleryTop.length > 0 
+      ? resolvedGalleryTop[0]
+      : DEFAULT_VEHICLE_BG;
+  
+  // Gallery: if background is explicit, show all; otherwise drop the first (used as bg)
+  const galleryImages = hasExplicitBg ? resolvedGalleryTop : resolvedGalleryTop.slice(1);
 
   const fullTitle = vehicle.marque ? `${vehicle.marque} ${vehicle.modele}` : vehicle.modele;
+  const regYear = vehicle.miseEnCirculation ? new Date(vehicle.miseEnCirculation).getFullYear() : null;
 
-  // 1) Renommer la variable pour éviter tout conflit et clarifier
-  const regYear = vehicle.miseEnCirculation
-    ? new Date(vehicle.miseEnCirculation).getFullYear()
-    : null;
+  // Navigation
+  const prevImage = () => {
+    if (!galleryImages.length) return;
+    setSelectedImage(i => (i - 1 + galleryImages.length) % galleryImages.length);
+  };
+  const nextImage = () => {
+    if (!galleryImages.length) return;
+    setSelectedImage(i => (i + 1) % galleryImages.length);
+  };
 
   return (
     <Box
@@ -148,23 +231,23 @@ export default function VehicleDetails() {
       minHeight="calc(100vh - var(--header-h) - var(--nav-h))"
       marginLeft="calc(-50vw + 50%)"
       marginRight="calc(-50vw + 50%)"
-      // Important: guillemets autour de l’URL pour data: et caractères spéciaux
-      backgroundImage={`url("${backgroundImage}")`}
-      backgroundSize="cover"
-      backgroundPosition={backgroundPosition}
-      backgroundRepeat="no-repeat"
-      overflow="hidden"
+      style={{
+        backgroundImage: `url("${displayBg}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: 'no-repeat'
+      }}
     >
-      {/* Overlay sombre */ }
+      {/* overlay sombre au-dessus du fond */}
       <Box position="absolute" inset={0} bg="blackAlpha.600" zIndex={1} />
 
-      {/* Contenu */ }
+      {/* Contenu par-dessus l'overlay */}
       <Box position="relative" zIndex={2} py={8}>
         <Container maxW="7xl">
           {/* Navigation */}
           <Button
             as={Link}
-            to="/parc"             // ← corrige /vehicles → /parc
+            to="/parc"
             leftIcon={<FiArrowLeft />}
             mb={6}
             colorScheme="whiteAlpha"
@@ -219,7 +302,7 @@ export default function VehicleDetails() {
               {/* Image principale réduite */}
               {galleryImages.length > 0 && (
                 <Box position="relative" mb={3}>
-                  <Image
+                  <ChakraImage
                     src={galleryImages[selectedImage]}
                     alt={`${fullTitle} - Photo ${selectedImage + 1}`}
                     borderRadius="md"
@@ -231,6 +314,11 @@ export default function VehicleDetails() {
                     transition="transform 0.2s"
                     _hover={{ transform: "scale(1.02)" }}
                     border="2px solid white"
+                    onError={(e) => {
+                      if (e.currentTarget.src !== DEFAULT_VEHICLE_BG) {
+                        e.currentTarget.src = DEFAULT_VEHICLE_BG;
+                      }
+                    }}
                   />
                   
                   {/* Navigation des images */}
@@ -270,7 +358,7 @@ export default function VehicleDetails() {
               {/* Miniatures compactes */}
               <SimpleGrid columns={3} spacing={1}>
                 {galleryImages.map((src, index) => (
-                  <Image
+                  <ChakraImage
                     key={index}
                     src={src}
                     alt={`Miniature ${index + 1}`}
@@ -283,6 +371,11 @@ export default function VehicleDetails() {
                     onClick={() => setSelectedImage(index)}
                     transition="all 0.2s"
                     _hover={{ borderColor: "blue.300" }}
+                    onError={(e) => {
+                      if (e.currentTarget.src !== DEFAULT_VEHICLE_BG) {
+                        e.currentTarget.src = DEFAULT_VEHICLE_BG;
+                      }
+                    }}
                   />
                 ))}
               </SimpleGrid>
@@ -344,20 +437,25 @@ export default function VehicleDetails() {
               <ModalCloseButton color="white" size="lg" />
               <ModalBody p={0}>
                 {galleryImages[selectedImage] && (
-                  <Image
+                  <ChakraImage
                     src={galleryImages[selectedImage]}
                     alt={`${fullTitle} - Photo agrandie`}
                     width="100%"
                     height="auto"
                     maxH="90vh"
                     objectFit="contain"
+                    onError={(e) => {
+                      if (e.currentTarget.src !== DEFAULT_VEHICLE_BG) {
+                        e.currentTarget.src = DEFAULT_VEHICLE_BG;
+                      }
+                    }}
                   />
                 )}
               </ModalBody>
             </ModalContent>
           </Modal>
 
-        </Container>  {/* ← ajoutez cette fermeture manquante */}
+        </Container>
       </Box>
     </Box>
   );

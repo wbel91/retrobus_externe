@@ -31,6 +31,8 @@
 
 html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
   background: var(--white);
   color: var(--text-dark);
   /* --- Police principale définie ici avec !important --- */
@@ -160,7 +162,7 @@ a:hover {
    ========================================================================== */
 
 .site-main {
-  padding-top: calc(var(--header-h) + var(--nav-h));
+  padding-top: calc(var(--header-h) + var(--nav-h) - 12px);
   width: min(var(--layout-max), calc(100% - (var(--gutter) * 2)));
   margin-left: auto;
   margin-right: auto;
@@ -210,6 +212,7 @@ a:hover {
 .site-footer {
   background-color: var(--rbe-red);
   color: #fff;
+  margin: 0;
   padding: 20px 0;
 }
 
@@ -266,19 +269,213 @@ a:hover {
   .hero.full-bleed { background-position: center top; min-height: 360px; }
   .hero .hero-content { justify-content: center; padding: 28px; }
   .hero .hero-box { text-align: center; }
+  
+  .home-landing .hero.full-bleed,
+  .vehicle-detail-landing {
+    margin-top: 0; /* Pas de marge négative sur mobile */
+  }
 }
 
 /* --- Ajustement page d'accueil : coller le hero sous la navbar sans bande blanche --- */
 .home-landing .hero.full-bleed {
-  margin-top: 0; /* was: calc(-1 * var(--nav-h)) which pushed the hero under the fixed nav */
+  margin-top: calc(-1 * (var(--header-h) + var(--nav-h) - 12px)); /* Compense tout le padding-top */
 }
 
 /* Detail page likely using the same trick; keep it aligned below nav as well */
 .vehicle-detail-landing {
-  margin-top: 0; /* was: calc(-1 * var(--nav-h)) */
+  margin-top: -44px; /* Juste assez pour coller au navbar */
 }
 
 /* Optionnel (si un fin trait persiste à cause d'un border-collapse / sous-pixel) */
 .site-nav {
   box-shadow: 0 0 0 0 transparent; /* s'assurer qu'il n'y a pas d'ombre qui crée l'illusion d'un espace */
 }
+
+/* ====== Titres de page unifiés (style des événements) ====== */
+
+/* Conteneur standard pour l'entête de page (titre + sous-titre) */
+.page-header {
+  text-align: center;
+  margin-top: -5px;  /* remonte légèrement sous la barre fixe */
+  margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .page-header { margin-top: -6px; }
+}
+.page-title {
+  color: var(--rbe-red) !important;
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em;
+}
+.page-subtitle {
+  color: #831b1b;
+  max-width: 52ch;
+  margin: 6px auto 0;
+}
+
+/* Remonte légèrement le premier bloc titre du contenu pour toutes pages */
+.site-main > .chakra-container:first-child .page-header,
+.site-main > .chakra-stack:first-child .page-header {
+  margin-top: -12px;
+}
+
+/* Si une page place directement un H1 sans .page-header, on remonte un peu le premier titre trouvé */
+.site-main h1:first-of-type {
+  margin-top: -8px;
+}
+
+/* Accueil: déjà rapproché, on peut accentuer un peu la proximité si souhaité */
+.home-landing .hero.full-bleed {
+  margin-top: -44px; /* ajuster entre -8px et -12px si besoin */
+}
+
+/* ====== OMSI 2 Hero Collage ====== */
+.omsi-hero {
+  position: relative;
+  color: #fff;
+  min-height: 440px;
+  padding: 36px 0 24px;
+  margin-top: -8px; /* rapproche sans chevauchement */
+  overflow: hidden;
+}
+.omsi-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0; /* derrière le contenu */
+}
+.omsi-hero-inner {
+  width: min(var(--layout-max), calc(100% - (var(--gutter) * 2)));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  align-items: center;
+  gap: clamp(20px, 4vw, 48px);
+  position: relative;
+  z-index: 2; /* au-dessus de l'image */
+}
+.omsi-hero .page-title { color: #fff !important; }
+.omsi-hero.single .omsi-hero-inner { grid-template-columns: 1fr; justify-items: start; }
+.omsi-hero.single .omsi-hero-copy { max-width: 900px; }
+@media (max-width: 768px) {
+  .omsi-hero { padding: 28px 0 18px; margin-top: -6px; }
+  .omsi-hero.single .omsi-hero-inner { justify-items: center; text-align: center; }
+}
+
+/* Slides OMSI (une section par image) */
+.omsi-hero-slide {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  align-items: flex-end;
+  margin-top: -6px;
+  overflow: hidden;
+}
+.omsi-hero-slide__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.omsi-hero-slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.24) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.omsi-hero-slide__inner {
+  position: relative;
+  z-index: 2;
+  width: min(var(--layout-max), calc(100% - (var(--gutter) * 2)));
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 40px) 0;
+  display: flex;
+  justify-content: space-between;
+}
+.omsi-hero-slide.left  .omsi-hero-slide__inner { justify-content: flex-start; text-align: left; }
+.omsi-hero-slide.right .omsi-hero-slide__inner { justify-content: flex-end;  text-align: right; }
+.omsi-hero-slide__copy { max-width: 640px; color: #fff; }
+
+@media (max-width: 768px) {
+  .omsi-hero-slide { min-height: 340px; margin-top: -4px; }
+  .omsi-hero-slide__inner { justify-content: center; text-align: center; padding: 24px 0; }
+}
+
+/* OMSI hero: variante single (sans mosaïque) */
+.omsi-hero.single .omsi-hero-inner {
+  grid-template-columns: 1fr;        /* une seule colonne */
+  justify-items: start;               /* aligne le texte à gauche */
+}
+.omsi-hero.single .omsi-hero-copy {
+  max-width: 900px;                   /* largeur lisible du bloc texte */
+}
+
+/* Sur mobile, on centre proprement */
+@media (max-width: 768px) {
+  .omsi-hero.single .omsi-hero-inner {
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+/* Image de fond des slides (avec fallback jpg/png/jpeg/webp via CompatImg) */
+.omsi-hero-slide {
+  position: relative;
+  overflow: hidden;
+}
+
+.omsi-hero-slide__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0; /* sous le voile et le contenu */
+}
+
+.omsi-hero-slide::before {
+  z-index: 1; /* voile au-dessus de l’image */
+}
+
+.omsi-hero-slide__inner {
+  position: relative;
+  z-index: 2; /* texte au-dessus du voile */
+}
+
+/* Voile ombragé pour le premier hero OMSI (comme l'accueil) */
+.omsi-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: .28;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.00) 0%,
+    rgba(0,0,0,0.06) 45%,
+    rgba(0,0,0,0.32) 100%
+  );
+}
+
+/* Ajout d'un dégradé en bas du hero OMSI pour un effet de fondu */
+.omsi-hero::after {
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-1px; height:44px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.22), transparent);
+  opacity:.28;
+  z-index:1;
+  pointer-events:none;
+}
+
+/* on s’assure que la hiérarchie des couches est correcte */
+.omsi-hero__img { z-index: 0; }
+.omsi-hero-inner { z-index: 2; }

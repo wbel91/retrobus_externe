@@ -15,6 +15,7 @@ import Contact from "./pages/Contact.jsx";
 import Photos from "./pages/Photos.jsx";
 import Donate from "./pages/Donate.jsx";
 import RetroMerch from "./pages/RetroMerch.jsx";
+// import OmsiAddon from "./pages/OmsiAddon.jsx"; // ← temporairement désactivé
 import Changelog from "./pages/Changelog.jsx";
 import Newsletter from "./pages/Newsletter";
 
@@ -43,6 +44,7 @@ export default function App() {
 
           {/* Other pages */}
           <Route path="/retromerch" element={<RetroMerch />} />
+          {/* <Route path="/omsi2" element={<OmsiAddon />} /> */} {/* ← temporairement désactivé */}
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/photos" element={<Photos />} />

@@ -11,6 +11,7 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  VStack,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import vehicleImage1 from "../assets/920_pres.jpg";
@@ -76,9 +77,14 @@ export default function Vehicles() {
       </Helmet>
 
       <Container maxW="6xl" py={{ base: 6, md: 10 }}>
-        <Heading as="h1" size="2xl" mb={6}>
-          Nos Véhicules
-        </Heading>
+        <VStack className="page-header" spacing={4} mb={8} textAlign="center">
+          <Heading as="h1" size="2xl" className="page-title">
+            Nos Véhicules
+          </Heading>
+          <Text className="page-subtitle">
+            Découvrez notre collection et l’histoire des transports franciliens.
+          </Text>
+        </VStack>
 
         {error && (
           <Alert status="warning" mb={6}>

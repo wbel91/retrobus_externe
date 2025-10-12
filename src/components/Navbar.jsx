@@ -128,6 +128,7 @@ export default function Navbar({ donateIcon, newsletterIcon, onDonateClick, onNe
     { to: "/parc", label: "Parc de Véhicules" },
     { to: "/evenements", label: "Événements" },
     { to: "/retromerch", label: "RétroMerch" },
+    // { to: "/omsi2", label: "AddOn OMSI 2" }, // ← temporairement désactivé
     { to: "/contact", label: "Contact" },
   ];
 

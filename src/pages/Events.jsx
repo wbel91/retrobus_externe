@@ -437,11 +437,11 @@ export default function Events() {
       `}</style>
 
       <Container maxW="container.xl" py={10}>
-        <VStack spacing={6} mb={12} textAlign="center">
-          <Heading as="h1" size="2xl" className="event-title">
+        <VStack className="page-header" spacing={4} mb={8} textAlign="center">
+          <Heading as="h1" size="2xl" className="page-title">
             Nos Événements
           </Heading>
-          <Text fontSize="lg" color="gray.600" maxW="2xl">
+          <Text className="page-subtitle">
             Découvrez l'agenda de nos prochaines sorties, manifestations et rencontres autour de notre passion pour les véhicules d'époque.
           </Text>
         </VStack>
