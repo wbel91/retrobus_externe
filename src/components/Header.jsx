@@ -8,6 +8,7 @@ import {
 import bg from "../assets/_MG_0969.jpg";
 import logoDefault from "../assets/RétroBouh2025.svg";
 import Navbar from "./Navbar.jsx";
+import CompatImg from "./CompatImg";
 
 // Icônes (remplies en rouge rétrobus)
 const HandHeartIcon = ({ size = 28 }) => (
@@ -23,6 +24,9 @@ const EnvelopeIcon = ({ size = 28 }) => (
     <path d="M3 6c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v.4L12 12 3 6.4V6Zm0 2.8V18c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.8l-9.3 5.7a1 1 0 0 1-1.05 0L3 8.8Z"/>
   </svg>
 );
+
+const LOGO_PATH = "/assets/rbe_logo.svg";
+const HEADER_BG = "/assets/fallback/_MG_1006.jpg";
 
 export default function Header() {
   const { pathname } = useLocation();
@@ -101,27 +105,61 @@ export default function Header() {
     }
   };
 
+  const handleDonateClick = () => {
+    window.open('https://www.helloasso.com/associations/retrobus-essonne', '_blank');
+  };
+
   return (
     <>
       <header className="site-header">
-        <div
-          className="header-bg"
-          style={{
-            backgroundImage: `url("${headerImg}")`,
-            backgroundPosition: headerPos
-          }}
-          aria-hidden="true"
-        />
+        {/* Background image */}
+        <div className="header-bg">
+          <CompatImg
+            path={HEADER_BG}
+            alt="Header background"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+
         <div className="header-inner">
-          <img src={logo} alt="RétroBus Essonne" className="header-logo" />
+          {/* Logo */}
+          <Link to="/" aria-label="Retour à l'accueil">
+            <CompatImg 
+              className="header-logo" 
+              path={LOGO_PATH} 
+              alt="Logo RBE" 
+            />
+          </Link>
+
+          {/* Mobile: Menu burger button */}
+          {isMobile && (
+            <IconButton
+              icon={<HamburgerIcon />}
+              onClick={onOpen}
+              variant="ghost"
+              size="lg"
+              color="var(--rbe-red)"
+              aria-label="Ouvrir le menu"
+              className="mobile-nav-toggle"
+              _hover={{ bg: 'rgba(190, 0, 60, 0.1)' }}
+              _active={{ bg: 'rgba(190, 0, 60, 0.2)' }}
+            />
+          )}
         </div>
       </header>
 
-      {/* Navbar avec icônes à droite */}
-      <Navbar
+      {/* Navigation */}
+      <Navbar 
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
         donateIcon={<HandHeartIcon size={26} />}
         newsletterIcon={<EnvelopeIcon size={26} />}
-        onDonateClick={onDonateOpen}
+        onDonateClick={handleDonateClick}
         onNewsletterClick={onNewsOpen}
       />
 
