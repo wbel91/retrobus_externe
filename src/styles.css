@@ -337,22 +337,25 @@ a:hover {
 }
 
 /* ==========================================================================
-   8. Footer Mobile
+   8. Footer - Disposition verticale responsive
    ========================================================================== */
 
 .site-footer {
   background-color: var(--rbe-red);
   color: #fff;
   margin: 0;
-  padding: 24px var(--mobile-gutter);
-  text-align: center;
+  padding: 32px var(--mobile-gutter);
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Réseaux sociaux - adaptation mobile */
 .site-footer .social-icons {
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin-top: 20px;
+  margin: 24px 0;
+  flex-wrap: wrap;
 }
 
 .site-footer .social-icons a {
@@ -371,6 +374,52 @@ a:hover {
 
 .site-footer .social-icons a:hover {
   transform: scale(1.1);
+}
+
+/* Adaptation mobile pour le footer */
+@media (max-width: 767px) {
+  .site-footer {
+    padding: 24px var(--mobile-gutter);
+    text-align: center;
+  }
+  
+  /* Force la grille en une colonne sur mobile */
+  .site-footer .chakra-simple-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  
+  /* Espacement vertical entre les sections */
+  .site-footer .chakra-simple-grid > div {
+    margin-bottom: 16px;
+  }
+  
+  /* Liens en colonnes sur mobile */
+  .site-footer .chakra-simple-grid > div:nth-child(2) a {
+    display: inline-block;
+    margin-right: 20px;
+  }
+}
+
+/* Adaptation desktop */
+@media (min-width: 768px) {
+  .site-footer {
+    padding: 48px var(--gutter);
+  }
+  
+  /* Grid 3 colonnes sur desktop */
+  .site-footer .chakra-simple-grid {
+    grid-template-columns: 2fr 1fr 1fr !important;
+    gap: 40px !important;
+    align-items: start;
+  }
+}
+
+/* Adaptation large écran */
+@media (min-width: 1200px) {
+  .site-footer {
+    padding: 48px calc(var(--gutter) * 1.5);
+  }
 }
 
 /* ==========================================================================

@@ -1,10 +1,11 @@
-﻿import { Container, SimpleGrid, Text, Link as CLink, Image } from "@chakra-ui/react";
+﻿import React from "react";
+import { Container, SimpleGrid, Text, Link as CLink, Image } from "@chakra-ui/react";
 import { FaFacebook, FaInstagram, FaTiktok } from "react-icons/fa";
 
 export default function Footer() {
   return (
     <footer className="site-footer" style={{ marginTop: "60px" }}>
-      <Container>
+      <Container maxW="100%" px={8}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} style={{ flex: 1 }}>
             <div>
