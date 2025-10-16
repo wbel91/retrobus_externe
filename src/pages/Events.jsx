@@ -369,6 +369,25 @@ export default function Events() {
     return badges;
   };
 
+  const handleRegistration = (event) => {
+    // Vérifier si l'événement a une URL HelloAsso configurée
+    if (event.helloAssoUrl) {
+      // Redirection vers HelloAsso
+      window.open(event.helloAssoUrl, '_blank');
+    } else {
+      // Fallback vers inscription interne
+      toast({
+        status: 'info',
+        title: 'Inscription',
+        description: 'Redirection vers le système d\'inscription...',
+        duration: 3000
+      });
+      
+      // Ici vous pourriez rediriger vers un formulaire d'inscription interne
+      // window.location.href = `/events/${event.id}/register`;
+    }
+  };
+
   return (
     <>
       <Helmet>
