@@ -782,7 +782,7 @@ a:hover {
 
 @media (min-width: 769px) {
   .home-landing .hero.full-bleed {
-    margin-top: calc(-1 * (var(--header-h) + var(--nav-h) - 12px));
+    margin-top: calc(-0.4 * (var(--header-h) + var(--nav-h) - 12px));
     padding-top: 0;
   }
 }
